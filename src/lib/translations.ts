@@ -295,6 +295,7 @@ export const translations = {
             pricing: "الأسعار",
             testimonials: "الشهادات",
             faq: "الأسئلة الشائعة",
+            about: "من نحن",
             login: "تسجيل الدخول",
             getStarted: "ابدأ الآن",
             backToTop: "العودة للأعلى"
@@ -576,6 +577,7 @@ export const translations = {
             pricing: "Tarification",
             testimonials: "Témoignages",
             faq: "FAQ",
+            about: "À Propos",
             login: "Connexion",
             getStarted: "Commencer",
             backToTop: "Retour en haut"
@@ -857,6 +859,7 @@ export const translations = {
             pricing: "Precios",
             testimonials: "Testimonios",
             faq: "Preguntas",
+            about: "Acerca de",
             login: "Acceder",
             getStarted: "Empezar",
             backToTop: "Volver arriba"
@@ -1138,6 +1141,7 @@ export const translations = {
             pricing: "Preise",
             testimonials: "Referenzen",
             faq: "FAQ",
+            about: "Über uns",
             login: "Login",
             getStarted: "Starten",
             backToTop: "Zurück nach oben"
@@ -1420,6 +1424,7 @@ export const translations = {
             pricing: "价格",
             testimonials: "客户评价",
             faq: "常见问题",
+            about: "关于我们",
             login: "登录",
             getStarted: "立即开始",
             backToTop: "返回顶部"
@@ -1702,6 +1707,7 @@ export const translations = {
             pricing: "料金",
             testimonials: "お客様の声",
             faq: "よくある質問",
+            about: "当社について",
             login: "ログイン",
             getStarted: "始める",
             backToTop: "トップへ戻る"

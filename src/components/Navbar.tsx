@@ -24,7 +24,7 @@ const Navbar = () => {
     { name: t.features, href: "#features" },
     { name: t.pricing, href: "#pricing" },
     { name: t.faq, href: "#faq" },
-    { name: language === 'ar' ? 'من نحن' : 'About', href: "#about" },
+    { name: t.about, href: "#about" },
   ];
 
   return (
