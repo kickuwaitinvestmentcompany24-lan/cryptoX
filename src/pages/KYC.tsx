@@ -49,9 +49,11 @@ const KYC = () => {
   const { profile, refreshProfile } = useAuth();
   const { setIsMobileSidebarOpen } = useOutletContext<any>() || { setIsMobileSidebarOpen: () => { } };
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecovered, setIsRecovered] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(true);
 
   // Persistence keys
   const STORAGE_KEY_NAME = "kyc_draft_name";
@@ -65,6 +67,17 @@ const KYC = () => {
     },
   });
 
+  // Handle preview and cleanup
+  React.useEffect(() => {
+    if (file && file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [file]);
+
   // Restore file from IndexedDB on mount
   React.useEffect(() => {
     const restoreData = async () => {
@@ -77,7 +90,9 @@ const KYC = () => {
             setFile(request.result);
             setIsRecovered(true);
           }
+          setIsRestoring(false);
         };
+        request.onerror = () => setIsRestoring(false);
 
         const savedName = localStorage.getItem(STORAGE_KEY_NAME);
         const savedType = localStorage.getItem(STORAGE_KEY_TYPE);
@@ -86,6 +101,7 @@ const KYC = () => {
         }
       } catch (err) {
         console.error("Failed to restore KYC draft:", err);
+        setIsRestoring(false);
       }
     };
 
@@ -105,6 +121,15 @@ const KYC = () => {
   }, [idTypeValue]);
 
   const handleFileChange = async (newFile: File | null) => {
+    if (newFile && newFile.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "The identity document must be smaller than 10MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setFile(newFile);
     try {
       const db = await openDB();
@@ -157,7 +182,10 @@ const KYC = () => {
 
       const { error: uploadError } = await supabase.storage
         .from("receipts")
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          upsert: true,
+          contentType: file.type
+        });
 
       if (uploadError) throw uploadError;
 
@@ -307,7 +335,7 @@ const KYC = () => {
                         await handleFileChange(e.dataTransfer.files[0]);
                       }
                     }}
-                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer
+                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer relative overflow-hidden
                         ${dragActive ? "border-primary bg-primary/5" : "border-border/50 hover:border-primary/40"}
                       `}
                     onClick={() => document.getElementById("file-upload")?.click()}
@@ -319,10 +347,23 @@ const KYC = () => {
                       accept="image/*,.pdf"
                       onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
                     />
-                    {file ? (
+                    {previewUrl ? (
+                      <div className="relative group mx-auto w-32 h-32 rounded-lg overflow-hidden border border-border shadow-md">
+                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}
+                            className="bg-destructive text-white p-1.5 rounded-full hover:scale-110 transition-transform"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : file ? (
                       <div className={cn("flex items-center justify-center gap-2", isRTL && "flex-row-reverse")}>
                         <FileText className="w-5 h-5 text-primary" />
-                        <span className="text-sm text-foreground">{file.name}</span>
+                        <span className="text-sm text-foreground truncate max-w-[150px]">{file.name}</span>
                         <button type="button" onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}>
                           <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                         </button>
@@ -339,10 +380,16 @@ const KYC = () => {
 
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 glow-emerald font-bold"
+                  disabled={isSubmitting || isRestoring}
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 glow-emerald font-bold h-12"
                 >
-                  {isSubmitting ? t.submitting : t.submit}
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <span className="animate-pulse">{t.submitting}</span>
+                    </div>
+                  ) : isRestoring ? (
+                    "Restoring draft..."
+                  ) : t.submit}
                 </Button>
               </form>
             </Form>
