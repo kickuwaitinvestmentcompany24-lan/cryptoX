@@ -15,7 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/lib/translations";
 import { getPlatformSettings, DepositMethod } from "@/lib/storage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface DepositModalProps {
@@ -372,15 +372,25 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                                 />
                                 {file ? (
                                     <div className="flex items-center justify-center gap-2">
-                                        <FileText className="w-5 h-5 text-primary" />
+                                        {isSubmitting ? (
+                                            <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                                        ) : (
+                                            <FileText className="w-5 h-5 text-primary" />
+                                        )}
                                         <span className="text-sm truncate max-w-[200px]">{file.name}</span>
-                                        <button type="button" onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}>
-                                            <X className="w-4 h-4 text-muted-foreground" />
-                                        </button>
+                                        {!isSubmitting && (
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}>
+                                                <X className="w-4 h-4 text-muted-foreground" />
+                                            </button>
+                                        )}
                                     </div>
                                 ) : (
                                     <>
-                                        <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                                        {isSubmitting ? (
+                                            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-2" />
+                                        ) : (
+                                            <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                                        )}
                                         <p className="text-sm text-muted-foreground">{t.uploadDesc}</p>
                                     </>
                                 )}
@@ -392,10 +402,15 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                             <Button
                                 type="button"
                                 onClick={handleDeposit}
-                                className="bg-primary hover:bg-primary/90 glow-emerald"
+                                className="bg-primary hover:bg-primary/90 glow-emerald gap-2"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? t.processing : t.submit}
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        {t.processing}
+                                    </>
+                                ) : t.submit}
                             </Button>
                         </DialogFooter>
                     </div>

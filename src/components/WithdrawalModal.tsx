@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
     Wallet, CreditCard, Key, ShieldCheck,
     ChevronRight, ChevronLeft, AlertCircle, CheckCircle2,
-    DollarSign, Info, Clock
+    DollarSign, Info, Clock, Loader2
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/lib/translations";
@@ -448,7 +448,12 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                         disabled={isUploading || !receipt}
                                         className="w-full"
                                     >
-                                        {isUploading ? t.processing || "Uploading..." : t.submit}
+                                        {isUploading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                {t.processing || "Uploading..."}
+                                            </>
+                                        ) : t.submit}
                                     </Button>
                                 )}
                             </div>
@@ -498,7 +503,12 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                         disabled={isUploading || !receipt}
                                         className="w-full"
                                     >
-                                        {isUploading ? t.processing || "Uploading..." : t.submit}
+                                        {isUploading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                {t.processing || "Uploading..."}
+                                            </>
+                                        ) : t.submit}
                                     </Button>
                                 )}
                             </div>
@@ -548,7 +558,12 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                         disabled={isUploading || !receipt}
                                         className="w-full"
                                     >
-                                        {isUploading ? t.processing || "Uploading..." : t.submit}
+                                        {isUploading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                {t.processing || "Uploading..."}
+                                            </>
+                                        ) : t.submit}
                                     </Button>
                                 )}
                             </div>
@@ -604,8 +619,13 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                 )}
                             </Button>
                             {step === 'account' ? (
-                                <Button type="button" onClick={handleSubmit} disabled={isSubmitting} className="glow-emerald">
-                                    {isSubmitting ? t.processing || "Submitting..." : t.submitWithdrawal}
+                                <Button type="button" onClick={handleSubmit} disabled={isSubmitting} className="glow-emerald gap-2">
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            {t.processing || "Submitting..."}
+                                        </>
+                                    ) : t.submitWithdrawal}
                                 </Button>
                             ) : (
                                 <Button

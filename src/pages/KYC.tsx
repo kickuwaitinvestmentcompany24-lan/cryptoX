@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Upload, FileText, X, Clock, AlertCircle, CheckCircle2, Menu } from "lucide-react";
+import { Upload, FileText, X, Clock, AlertCircle, CheckCircle2, Menu, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
@@ -385,11 +385,17 @@ const KYC = () => {
                     {previewUrl ? (
                       <div className="relative group mx-auto w-32 h-32 rounded-lg overflow-hidden border border-border shadow-md">
                         <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        {isSubmitting && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <Loader2 className="w-8 h-8 text-white animate-spin" />
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <button
                             type="button"
+                            disabled={isSubmitting}
                             onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}
-                            className="bg-destructive text-white p-1.5 rounded-full hover:scale-110 transition-transform"
+                            className="bg-destructive text-white p-1.5 rounded-full hover:scale-110 transition-transform disabled:opacity-50"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -397,11 +403,17 @@ const KYC = () => {
                       </div>
                     ) : file ? (
                       <div className={cn("flex items-center justify-center gap-2", isRTL && "flex-row-reverse")}>
-                        <FileText className="w-5 h-5 text-primary" />
+                        {isSubmitting ? (
+                          <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                        ) : (
+                          <FileText className="w-5 h-5 text-primary" />
+                        )}
                         <span className="text-sm text-foreground truncate max-w-[150px]">{file.name}</span>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}>
-                          <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                        </button>
+                        {!isSubmitting && (
+                          <button type="button" onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}>
+                            <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <>
@@ -420,10 +432,14 @@ const KYC = () => {
                 >
                   {isSubmitting ? (
                     <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       <span className="animate-pulse">{t.submitting}</span>
                     </div>
                   ) : isRestoring ? (
-                    "Restoring draft..."
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Restoring draft...</span>
+                    </div>
                   ) : t.submit}
                 </Button>
               </form>
