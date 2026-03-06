@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Wallet, TrendingUp, PieChart, ShieldCheck,
     MessageSquare, Box, LogOut, ChevronLeft,
-    ChevronRight, Menu, X, CreditCard, User
+    ChevronRight, Menu, X, CreditCard, User, Edit2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import { getInvestmentPlans, InvestmentPlan } from "@/lib/storage";
 import { DepositModal } from "./DepositModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/lib/translations";
+import { EditProfileModal } from "./EditProfileModal";
 
 interface UserSidebarProps {
     isCollapsed: boolean;
@@ -34,6 +35,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
     const [plans, setPlans] = useState<InvestmentPlan[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+    const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
     useEffect(() => {
         const fetchPlans = async () => {
@@ -185,6 +187,20 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
                                 isCollapsed && "justify-center"
                             )}
                             onClick={() => {
+                                setIsEditProfileOpen(true);
+                                if (window.innerWidth < 768) setIsOpen(false);
+                            }}
+                        >
+                            <Edit2 className="w-5 h-5 text-primary" />
+                            {!isCollapsed && <span>{(t as any).editProfile || "Edit Profile"}</span>}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            className={cn(
+                                "w-full justify-start gap-3 p-3 h-auto rounded-xl hover:bg-primary/10",
+                                isCollapsed && "justify-center"
+                            )}
+                            onClick={() => {
                                 // Support Ticket functionality
                                 navigate("/dashboard"); // Redirect to dashboard until support is a separate page
                                 if (window.innerWidth < 768) setIsOpen(false);
@@ -246,6 +262,10 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
             <DepositModal
                 isOpen={isDepositModalOpen}
                 onOpenChange={setIsDepositModalOpen}
+            />
+            <EditProfileModal
+                isOpen={isEditProfileOpen}
+                onOpenChange={setIsEditProfileOpen}
             />
             {/* Desktop Sidebar */}
             <aside

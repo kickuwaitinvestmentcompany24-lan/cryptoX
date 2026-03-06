@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Save, User as UserIcon, Phone, MapPin, Globe } from "lucide-react";
+import { Loader2, Save, User as UserIcon, Phone, MapPin, Globe, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/lib/translations";
@@ -40,17 +40,18 @@ interface EditProfileModalProps {
 export function EditProfileModal({ isOpen, onOpenChange }: EditProfileModalProps) {
     const { profile, user, refreshProfile } = useAuth();
     const { language, isRTL } = useLanguage();
-    // Safely access translations
     const langKey = language in translations ? language : 'en';
     const t = (translations[langKey] as any).editProfile || (translations['en'] as any).editProfile;
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     // Form states
     const [fullName, setFullName] = useState("");
     const [address, setAddress] = useState("");
     const [country, setCountry] = useState("");
     const [phone, setPhone] = useState("");
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (profile && isOpen) {
@@ -58,8 +59,40 @@ export function EditProfileModal({ isOpen, onOpenChange }: EditProfileModalProps
             setAddress(profile.home_address || "");
             setCountry(profile.country || "");
             setPhone(profile.phone_number || "");
+            setAvatarUrl(profile.avatar_url || null);
         }
     }, [profile, isOpen]);
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const file = e.target.files[0];
+        const fileExt = file.name.split(".").pop();
+        const filePath = `${profile?.user_id}/${Date.now()}.${fileExt}`;
+
+        setUploading(true);
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from("profiles")
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from("profiles")
+                .getPublicUrl(filePath);
+
+            setAvatarUrl(publicUrl);
+            toast({ title: "Photo uploaded!", description: "Your profile photo has been updated." });
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Upload failed",
+                description: error.message,
+            });
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,6 +106,7 @@ export function EditProfileModal({ isOpen, onOpenChange }: EditProfileModalProps
                     home_address: address,
                     country: country,
                     phone_number: phone,
+                    avatar_url: avatarUrl,
                 })
                 .eq("user_id", profile?.user_id);
 
@@ -97,24 +131,49 @@ export function EditProfileModal({ isOpen, onOpenChange }: EditProfileModalProps
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={(val) => !loading && onOpenChange(val)}>
+        <Dialog open={isOpen} onOpenChange={(val) => !loading && !uploading && onOpenChange(val)}>
             <DialogContent className="sm:max-w-[500px] glass-strong border-white/10 p-0 overflow-hidden">
-                <div className="relative h-32 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center px-8">
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary border border-primary/20 shadow-xl">
-                            <UserIcon className="w-8 h-8" />
-                        </div>
-                        <div>
-                            <DialogTitle className="text-2xl font-display font-bold text-foreground">{t.title}</DialogTitle>
-                            <DialogDescription className="text-muted-foreground">
-                                {user?.email}
-                            </DialogDescription>
+                {/* Header with avatar */}
+                <div className="relative h-36 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-end justify-center pb-0">
+                    {/* Avatar */}
+                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
+                        <div className="relative group">
+                            <div className="w-20 h-20 rounded-full border-4 border-background bg-muted flex items-center justify-center overflow-hidden shadow-xl">
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    <UserIcon className="w-8 h-8 text-muted-foreground" />
+                                )}
+                                {uploading && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                    </div>
+                                )}
+                            </div>
+                            <label className="absolute bottom-0 right-0 w-7 h-7 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-all shadow-lg border-2 border-background">
+                                <Camera className="w-3.5 h-3.5 text-primary-foreground" />
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleAvatarUpload}
+                                    disabled={uploading || loading}
+                                />
+                            </label>
                         </div>
                     </div>
                 </div>
 
-                <div className={`p-8 ${isRTL ? "text-right" : "text-left"}`}>
-                    <form onSubmit={handleSubmit} className="space-y-5" dir={isRTL ? "rtl" : "ltr"}>
+                {/* Title/Email section */}
+                <div className="pt-14 px-8 text-center">
+                    <DialogHeader className="mb-0">
+                        <DialogTitle className="text-xl font-display font-bold text-foreground">{t.title}</DialogTitle>
+                        <DialogDescription className="text-muted-foreground text-sm">{user?.email}</DialogDescription>
+                    </DialogHeader>
+                </div>
+
+                <div className={`px-8 pb-8 pt-4 ${isRTL ? "text-right" : "text-left"}`}>
+                    <form onSubmit={handleSubmit} className="space-y-4" dir={isRTL ? "rtl" : "ltr"}>
                         <div className="space-y-2">
                             <Label htmlFor="edit-fullname" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 <UserIcon className="w-3 h-3" /> {t.fullName}
@@ -183,14 +242,14 @@ export function EditProfileModal({ isOpen, onOpenChange }: EditProfileModalProps
                                 variant="outline"
                                 onClick={() => onOpenChange(false)}
                                 className="w-full sm:flex-1 h-11 border-border/50 hover:bg-background/80"
-                                disabled={loading}
+                                disabled={loading || uploading}
                             >
                                 {translations[langKey].dashboard.cancel || "Cancel"}
                             </Button>
                             <Button
                                 type="submit"
                                 className="w-full sm:flex-1 h-11 gap-2 font-bold shadow-lg shadow-primary/20"
-                                disabled={loading}
+                                disabled={loading || uploading}
                             >
                                 {loading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
