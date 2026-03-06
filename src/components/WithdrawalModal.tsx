@@ -20,6 +20,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/lib/translations";
 import { useQuery } from "@tanstack/react-query";
 import { getPlatformSettings, submitClearancePayment } from "@/lib/storage";
+import { motion } from "framer-motion";
 
 interface WithdrawalModalProps {
     isOpen: boolean;
@@ -28,19 +29,97 @@ interface WithdrawalModalProps {
 
 type Step = 'details' | 'card' | 'activation' | 'code' | 'account' | 'success';
 
+// IndexedDB logic for withdrawal file persistence
+const DB_NAME = "withdrawal_file_db";
+const STORE_NAME = "files";
+const FILE_KEY = "current_withdrawal_receipt";
+
+const openDB = (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = () => {
+            if (!request.result.objectStoreNames.contains(STORE_NAME)) {
+                request.result.createObjectStore(STORE_NAME);
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+};
+
 export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpenChange }) => {
     const { profile, refreshProfile } = useAuth();
     const { language, isRTL } = useLanguage();
     const t = translations[language].withdrawal;
     const { toast } = useToast();
+
+    // Persistent state keys
+    const STORAGE_KEY_ACCOUNT = "withdrawal_draft_account";
+
     const [step, setStep] = useState<Step>('details');
     const [amount, setAmount] = useState("");
     const [method, setMethod] = useState("");
-    const [accountDetails, setAccountDetails] = useState("");
+    const [accountDetails, setAccountDetails] = useState(() => localStorage.getItem(STORAGE_KEY_ACCOUNT) || "");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [receipt, setReceipt] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [jumpedOnOpen, setJumpedOnOpen] = useState(false);
+
+    // Save/Restore File from IndexedDB
+    useEffect(() => {
+        const restoreFile = async () => {
+            try {
+                const db = await openDB();
+                const tx = db.transaction(STORE_NAME, "readonly");
+                const request = tx.objectStore(STORE_NAME).get(FILE_KEY);
+                request.onsuccess = () => {
+                    if (request.result instanceof File) {
+                        setReceipt(request.result);
+                    }
+                };
+            } catch (err) {
+                console.error("Failed to restore withdrawal file:", err);
+            }
+        };
+
+        if (isOpen) {
+            restoreFile();
+        }
+    }, [isOpen]);
+
+    const handleFileChange = async (newFile: File | null) => {
+        setReceipt(newFile);
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            if (newFile) {
+                tx.objectStore(STORE_NAME).put(newFile, FILE_KEY);
+            } else {
+                tx.objectStore(STORE_NAME).delete(FILE_KEY);
+            }
+        } catch (err) {
+            console.error("Failed to sync withdrawal file:", err);
+        }
+    };
+
+    const clearWithdrawalPersistence = async () => {
+        localStorage.removeItem(STORAGE_KEY_ACCOUNT);
+        localStorage.removeItem("isWithdrawalModalOpen");
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            tx.objectStore(STORE_NAME).delete(FILE_KEY);
+        } catch (err) {
+            console.error("Failed to clear withdrawal file:", err);
+        }
+    };
+
+    // Save account details to localStorage
+    useEffect(() => {
+        if (isOpen) {
+            localStorage.setItem(STORAGE_KEY_ACCOUNT, accountDetails);
+        }
+    }, [accountDetails, isOpen]);
 
     // Explicitly refresh profile when modal opens to get latest persistence data
     useEffect(() => {
@@ -65,7 +144,6 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
             else if (currentStep > 3) setStep('account');
 
             if (profile.last_withdrawal_amount) {
-                console.log("Restoring amount from profile:", profile.last_withdrawal_amount);
                 setAmount(profile.last_withdrawal_amount.toString());
             }
             if (profile.last_withdrawal_method) setMethod(profile.last_withdrawal_method);
@@ -156,7 +234,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
             await submitClearancePayment(profile!.id, stepNum, amount, publicUrl);
 
             toast({ title: t.verified || "Submitted", description: t.pendingVerification || "Your payment is now pending admin verification." });
-            setReceipt(null);
+            await handleFileChange(null);
             await refreshProfile();
         } catch (error: any) {
             toast({ title: t.submissionFailed, description: error.message, variant: "destructive" });
@@ -209,6 +287,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
 
             if (txError) throw txError;
 
+            await clearWithdrawalPersistence();
             setStep('success');
             await refreshProfile();
         } catch (error: any) {
@@ -225,6 +304,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
             last_withdrawal_method: null
         }).eq('id', profile?.id);
 
+        await clearWithdrawalPersistence();
         setStep('details');
         setAmount("");
         setMethod("");
@@ -234,7 +314,12 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            if (!open) {
+                clearWithdrawalPersistence();
+            }
+            onOpenChange(open);
+        }}>
             <DialogContent className="glass max-w-md border-border/50">
                 <DialogHeader className={isRTL ? "text-right" : "text-left"}>
                     <DialogTitle className="font-display text-xl flex items-center gap-2">
@@ -246,7 +331,18 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4 space-y-6">
+                <div className="py-2 space-y-4">
+                    {(accountDetails || receipt || (profile?.last_withdrawal_amount && step === 'details')) && step !== 'success' && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 w-fit flex items-center gap-2 mx-auto mb-2"
+                        >
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Session recovered</span>
+                        </motion.div>
+                    )}
+
                     {step === 'details' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-1">
@@ -335,7 +431,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
 
                             <div className="space-y-3">
                                 <Label className={`text-xs ${isRTL ? "text-right block" : ""}`}>{t.uploadReceipt}</Label>
-                                <Input type="file" onChange={(e) => setReceipt(e.target.files?.[0] || null)} className="bg-muted/10 border-dashed" />
+                                <Input type="file" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} className="bg-muted/10 border-dashed" />
 
                                 {profile?.withdrawal_card_status === 'pending' ? (
                                     <div className="p-3 bg-primary/10 rounded-lg border border-primary/20 flex items-center justify-center gap-2 text-primary font-bold">
@@ -347,6 +443,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                     </div>
                                 ) : (
                                     <Button
+                                        type="button"
                                         onClick={() => handleClearanceSubmit(1, cardStep?.amount || 0)}
                                         disabled={isUploading || !receipt}
                                         className="w-full"
@@ -384,7 +481,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
 
                             <div className="space-y-3">
                                 <Label className={`text-xs ${isRTL ? "text-right block" : ""}`}>{t.uploadReceipt}</Label>
-                                <Input type="file" onChange={(e) => setReceipt(e.target.files?.[0] || null)} className="bg-muted/10 border-dashed" />
+                                <Input type="file" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} className="bg-muted/10 border-dashed" />
 
                                 {profile?.withdrawal_activation_status === 'pending' ? (
                                     <div className="p-3 bg-primary/10 rounded-lg border border-primary/20 flex items-center justify-center gap-2 text-primary font-bold">
@@ -396,6 +493,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                     </div>
                                 ) : (
                                     <Button
+                                        type="button"
                                         onClick={() => handleClearanceSubmit(2, activationStep?.amount || 0)}
                                         disabled={isUploading || !receipt}
                                         className="w-full"
@@ -433,7 +531,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
 
                             <div className="space-y-3">
                                 <Label className={`text-xs ${isRTL ? "text-right block" : ""}`}>{t.uploadReceipt}</Label>
-                                <Input type="file" onChange={(e) => setReceipt(e.target.files?.[0] || null)} className="bg-muted/10 border-dashed" />
+                                <Input type="file" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} className="bg-muted/10 border-dashed" />
 
                                 {profile?.withdrawal_code_status === 'pending' ? (
                                     <div className="p-3 bg-primary/10 rounded-lg border border-primary/20 flex items-center justify-center gap-2 text-primary font-bold">
@@ -445,6 +543,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                     </div>
                                 ) : (
                                     <Button
+                                        type="button"
                                         onClick={() => handleClearanceSubmit(3, codeStep?.amount || 0)}
                                         disabled={isUploading || !receipt}
                                         className="w-full"
@@ -487,7 +586,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                         .replace("{amount}", parseFloat(amount).toLocaleString())}
                                 </p>
                             </div>
-                            <Button onClick={resetModal} className="w-full mt-6">
+                            <Button type="button" onClick={resetModal} className="w-full mt-6">
                                 {t.backToDashboard}
                             </Button>
                         </div>
@@ -497,7 +596,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                 {step !== 'success' && (
                     <DialogFooter className="gap-2 sm:gap-0">
                         <div className={`flex justify-between w-full mt-4 ${isRTL ? "flex-row-reverse" : ""}`}>
-                            <Button variant="ghost" onClick={handleBack} disabled={step === 'details'}>
+                            <Button type="button" variant="ghost" onClick={handleBack} disabled={step === 'details'}>
                                 {isRTL ? (
                                     <><ChevronRight className="w-4 h-4 ml-1" /> {t.back}</>
                                 ) : (
@@ -505,11 +604,12 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                                 )}
                             </Button>
                             {step === 'account' ? (
-                                <Button onClick={handleSubmit} disabled={isSubmitting} className="glow-emerald">
+                                <Button type="button" onClick={handleSubmit} disabled={isSubmitting} className="glow-emerald">
                                     {isSubmitting ? t.processing || "Submitting..." : t.submitWithdrawal}
                                 </Button>
                             ) : (
                                 <Button
+                                    type="button"
                                     onClick={handleNext}
                                     disabled={
                                         (step === 'card' && profile?.withdrawal_card_status !== 'approved') ||
