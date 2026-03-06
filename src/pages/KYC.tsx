@@ -23,6 +23,24 @@ const kycSchema = (t: any) => z.object({
   idType: z.string().min(1, "Please select an ID type"),
 });
 
+// IndexedDB logic for file persistence
+const DB_NAME = "kyc_file_db";
+const STORE_NAME = "files";
+const FILE_KEY = "current_document";
+
+const openDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(STORE_NAME)) {
+        request.result.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
 const KYC = () => {
   const { language, isRTL } = useLanguage();
   const t = translations[language].kyc;
@@ -33,14 +51,85 @@ const KYC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRecovered, setIsRecovered] = useState(false);
+
+  // Persistence keys
+  const STORAGE_KEY_NAME = "kyc_draft_name";
+  const STORAGE_KEY_TYPE = "kyc_draft_type";
 
   const form = useForm<z.infer<ReturnType<typeof kycSchema>>>({
     resolver: zodResolver(kycSchema(t)),
     defaultValues: {
-      fullName: profile?.display_name || "",
-      idType: ""
+      fullName: localStorage.getItem(STORAGE_KEY_NAME) || profile?.display_name || "",
+      idType: localStorage.getItem(STORAGE_KEY_TYPE) || ""
     },
   });
+
+  // Restore file from IndexedDB on mount
+  React.useEffect(() => {
+    const restoreData = async () => {
+      try {
+        const db = await openDB();
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const request = tx.objectStore(STORE_NAME).get(FILE_KEY);
+        request.onsuccess = () => {
+          if (request.result instanceof File) {
+            setFile(request.result);
+            setIsRecovered(true);
+          }
+        };
+
+        const savedName = localStorage.getItem(STORAGE_KEY_NAME);
+        const savedType = localStorage.getItem(STORAGE_KEY_TYPE);
+        if (savedName || savedType) {
+          setIsRecovered(true);
+        }
+      } catch (err) {
+        console.error("Failed to restore KYC draft:", err);
+      }
+    };
+
+    restoreData();
+  }, []);
+
+  // Persist form fields to localStorage
+  const fullNameValue = form.watch("fullName");
+  const idTypeValue = form.watch("idType");
+
+  React.useEffect(() => {
+    if (fullNameValue) localStorage.setItem(STORAGE_KEY_NAME, fullNameValue);
+  }, [fullNameValue]);
+
+  React.useEffect(() => {
+    if (idTypeValue) localStorage.setItem(STORAGE_KEY_TYPE, idTypeValue);
+  }, [idTypeValue]);
+
+  const handleFileChange = async (newFile: File | null) => {
+    setFile(newFile);
+    try {
+      const db = await openDB();
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      if (newFile) {
+        tx.objectStore(STORE_NAME).put(newFile, FILE_KEY);
+      } else {
+        tx.objectStore(STORE_NAME).delete(FILE_KEY);
+      }
+    } catch (err) {
+      console.error("Failed to sync KYC document to IndexedDB:", err);
+    }
+  };
+
+  const clearPersistence = async () => {
+    localStorage.removeItem(STORAGE_KEY_NAME);
+    localStorage.removeItem(STORAGE_KEY_TYPE);
+    try {
+      const db = await openDB();
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).delete(FILE_KEY);
+    } catch (err) {
+      console.error("Failed to clear KYC draft from IndexedDB:", err);
+    }
+  };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -91,6 +180,7 @@ const KYC = () => {
         description: `Thank you, ${values.fullName}. Your documents are under review.`
       });
 
+      await clearPersistence();
       await refreshProfile();
       form.reset();
       setFile(null);
@@ -163,6 +253,16 @@ const KYC = () => {
             <CardDescription className={cn(isRTL && "text-right")}>{t.subtitle}</CardDescription>
           </CardHeader>
           <CardContent>
+            {isRecovered && !isSubmitting && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 w-fit flex items-center gap-2 mx-auto mb-6"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Draft recovered from last session</span>
+              </motion.div>
+            )}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <FormField control={form.control} name="fullName" render={({ field }) => (
@@ -201,7 +301,12 @@ const KYC = () => {
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
                     onDragOver={handleDrag}
-                    onDrop={handleDrop}
+                    onDrop={async (e) => {
+                      handleDrop(e);
+                      if (e.dataTransfer.files?.[0]) {
+                        await handleFileChange(e.dataTransfer.files[0]);
+                      }
+                    }}
                     className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer
                         ${dragActive ? "border-primary bg-primary/5" : "border-border/50 hover:border-primary/40"}
                       `}
@@ -212,13 +317,13 @@ const KYC = () => {
                       type="file"
                       className="hidden"
                       accept="image/*,.pdf"
-                      onChange={(e) => e.target.files?.[0] && setFile(e.target.files[0])}
+                      onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
                     />
                     {file ? (
                       <div className={cn("flex items-center justify-center gap-2", isRTL && "flex-row-reverse")}>
                         <FileText className="w-5 h-5 text-primary" />
                         <span className="text-sm text-foreground">{file.name}</span>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }}>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}>
                           <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                         </button>
                       </div>
