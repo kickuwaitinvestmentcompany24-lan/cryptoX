@@ -46,7 +46,7 @@ const KYC = () => {
   const t = translations[language].kyc;
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile, user } = useAuth();
   const { setIsMobileSidebarOpen } = useOutletContext<any>() || { setIsMobileSidebarOpen: () => { } };
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -188,7 +188,10 @@ const KYC = () => {
     setIsSubmitting(true);
     try {
       const fileExt = file.name.split(".").pop();
-      const storageId = profile?.id || profile?.user_id;
+      const storageId = user?.id || profile?.user_id || profile?.id;
+      if (!storageId) {
+        throw new Error("User not authenticated. Please log in again.");
+      }
       const filePath = `${storageId}/kyc-${Date.now()}.${fileExt}`;
 
       console.log("KYC: Starting upload to path:", filePath);
