@@ -53,6 +53,7 @@ const KYC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecovered, setIsRecovered] = useState(false);
+  const [fileRecovered, setFileRecovered] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
 
   // Persistence keys
@@ -78,21 +79,30 @@ const KYC = () => {
     }
   }, [file]);
 
-  // Restore file from IndexedDB on mount
+  // Restore data from Persistence on mount
   React.useEffect(() => {
     const restoreData = async () => {
       try {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, "readonly");
         const request = tx.objectStore(STORE_NAME).get(FILE_KEY);
+
         request.onsuccess = () => {
           if (request.result instanceof File) {
             setFile(request.result);
+            setFileRecovered(true);
             setIsRecovered(true);
+            console.log("KYC: File recovered successfully");
+          } else {
+            console.log("KYC: No file found in IndexedDB");
           }
           setIsRestoring(false);
         };
-        request.onerror = () => setIsRestoring(false);
+
+        request.onerror = (e) => {
+          console.error("KYC: Error reading from IndexedDB", e);
+          setIsRestoring(false);
+        };
 
         const savedName = localStorage.getItem(STORAGE_KEY_NAME);
         const savedType = localStorage.getItem(STORAGE_KEY_TYPE);
@@ -100,7 +110,7 @@ const KYC = () => {
           setIsRecovered(true);
         }
       } catch (err) {
-        console.error("Failed to restore KYC draft:", err);
+        console.error("KYC: Failed to restore draft:", err);
         setIsRestoring(false);
       }
     };
@@ -178,7 +188,10 @@ const KYC = () => {
     setIsSubmitting(true);
     try {
       const fileExt = file.name.split(".").pop();
-      const filePath = `${profile?.user_id}/kyc-${Date.now()}.${fileExt}`;
+      const storageId = profile?.id || profile?.user_id;
+      const filePath = `${storageId}/kyc-${Date.now()}.${fileExt}`;
+
+      console.log("KYC: Starting upload to path:", filePath);
 
       const { error: uploadError } = await supabase.storage
         .from("receipts")
@@ -187,7 +200,10 @@ const KYC = () => {
           contentType: file.type
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("KYC: Storage upload error:", uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from("receipts")
@@ -281,15 +297,34 @@ const KYC = () => {
             <CardDescription className={cn(isRTL && "text-right")}>{t.subtitle}</CardDescription>
           </CardHeader>
           <CardContent>
-            {isRecovered && !isSubmitting && (
+            {isRecovered && !isRestoring && !isSubmitting && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 w-fit flex items-center gap-2 mx-auto mb-6"
               >
                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Draft recovered from last session</span>
+                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                  {fileRecovered ? "Document & Form Recovered" : "Form Draft Recovered"}
+                </span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); clearPersistence(); window.location.reload(); }}
+                  className="ml-1 p-0.5 hover:bg-primary/20 rounded-full transition-colors"
+                  title="Clear Draft"
+                >
+                  <X className="w-3 h-3 text-primary" />
+                </button>
               </motion.div>
+            )}
+
+            {isRecovered && !fileRecovered && !isRestoring && (
+              <Alert className="mb-6 bg-yellow-500/10 border-yellow-500/50 text-yellow-600">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Document Missing</AlertTitle>
+                <AlertDescription className="text-xs">
+                  Your form data was recovered, but the document needs to be re-selected.
+                </AlertDescription>
+              </Alert>
             )}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
