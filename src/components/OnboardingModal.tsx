@@ -49,7 +49,8 @@ export function OnboardingModal() {
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
     useEffect(() => {
-        if (profile && !profile.onboarding_completed) {
+        const isDismissed = sessionStorage.getItem("onboarding_dismissed");
+        if (profile && !profile.onboarding_completed && !isDismissed) {
             setOpen(true);
             setFullName(profile.display_name || "");
             setAvatarUrl(profile.avatar_url || null);
@@ -57,6 +58,25 @@ export function OnboardingModal() {
             setOpen(false);
         }
     }, [profile]);
+
+    // Handle manual opening from sidebar
+    useEffect(() => {
+        const handleOpenOnboarding = () => {
+            setOpen(true);
+            if (profile) {
+                setFullName(profile.display_name || "");
+                setAvatarUrl(profile.avatar_url || null);
+            }
+        };
+
+        window.addEventListener("open-onboarding", handleOpenOnboarding);
+        return () => window.removeEventListener("open-onboarding", handleOpenOnboarding);
+    }, [profile]);
+
+    const handleDismiss = () => {
+        sessionStorage.setItem("onboarding_dismissed", "true");
+        setOpen(false);
+    };
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         try {
@@ -222,9 +242,21 @@ export function OnboardingModal() {
                             />
                         </div>
 
-                        <Button type="submit" className="w-full mt-6 h-12 gap-2 text-base font-bold shadow-lg shadow-primary/20" disabled={loading || uploading}>
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t.submit} <CheckCircle2 className="w-5 h-5" /></>}
-                        </Button>
+                        <div className="pt-2 flex flex-col gap-3">
+                            <Button type="submit" className="w-full h-12 gap-2 text-base font-bold shadow-lg shadow-primary/20" disabled={loading || uploading}>
+                                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t.submit} <CheckCircle2 className="w-5 h-5" /></>}
+                            </Button>
+
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full h-12 text-muted-foreground hover:text-foreground transition-colors"
+                                onClick={handleDismiss}
+                                disabled={loading || uploading}
+                            >
+                                {t.completeLater}
+                            </Button>
+                        </div>
                     </form>
                 </div>
             </DialogContent>

@@ -282,7 +282,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ isOpen, onOpen
                 type: 'withdrawal',
                 amount: withdrawalAmount,
                 status: 'pending',
-                receipt_url: `Method: ${method}\nDetails: ${accountDetails}`
+                receipt_url: JSON.stringify({ method, details: accountDetails })
             });
 
             if (txError) throw txError;

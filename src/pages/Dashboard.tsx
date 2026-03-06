@@ -19,7 +19,7 @@ import { WithdrawalModal } from "@/components/WithdrawalModal";
 import { SupportModal } from "@/components/SupportModal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { X, Info } from "lucide-react";
-import { updateProfile, getTransactions, getInvestmentPlans, getActiveInvestments, investInPlan, ActiveInvestment, InvestmentPlan } from "@/lib/storage";
+import { updateProfile, getTransactions, getInvestmentPlans, getActiveInvestments, investInPlan, ActiveInvestment, InvestmentPlan, Transaction } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { translations } from "@/lib/translations";
@@ -60,6 +60,18 @@ const Dashboard = () => {
   const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
   const [investAmount, setInvestAmount] = useState("");
   const [isInvesting, setIsInvesting] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+
+  const parseWithdrawalDetails = (receiptUrl: string | null) => {
+    if (!receiptUrl) return null;
+    // Clearance payments have regular URLs, actual withdrawals have JSON strings
+    if (receiptUrl.startsWith('http')) return null;
+    try {
+      return JSON.parse(receiptUrl);
+    } catch (e) {
+      return { details: receiptUrl };
+    }
+  };
 
   // Fetch transactions for the chart
   const { data: allTransactions = [] } = useQuery({
@@ -696,6 +708,187 @@ const Dashboard = () => {
               {t.investNow}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Recent Transactions History */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="mt-12"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            <h2 className="font-display text-xl font-bold">{t.recentTransactions}</h2>
+          </div>
+        </div>
+        <Card className="glass border-border/20 overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[600px]">
+              <thead>
+                <tr className="border-b border-border/10 bg-muted/30">
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.type}</th>
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.amount}</th>
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.status}</th>
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.date}</th>
+                  <th className="p-4"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/10">
+                {allTransactions.slice(0, 10).map((tx) => (
+                  <tr
+                    key={tx.id}
+                    className="group hover:bg-primary/5 transition-colors cursor-pointer"
+                    onClick={() => setSelectedTx(tx)}
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${tx.type === 'deposit' ? 'bg-emerald-500/10 text-emerald-500' :
+                          tx.type === 'withdrawal' ? 'bg-blue-500/10 text-blue-500' :
+                            'bg-amber-500/10 text-amber-500'
+                          }`}>
+                          {tx.type === 'deposit' ? <ArrowUpRight className="w-4 h-4" /> :
+                            tx.type === 'withdrawal' ? <ArrowDownRight className="w-4 h-4" /> :
+                              <TrendingUp className="w-4 h-4" />}
+                        </div>
+                        <span className="font-bold capitalize text-sm">{tx.type}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 font-mono font-bold text-foreground text-sm">
+                      {profile?.currency} {tx.amount.toLocaleString()}
+                    </td>
+                    <td className="p-4">
+                      <Badge className={`text-[10px] uppercase px-2 py-0.5 rounded-full border shadow-none ${tx.status === 'approved' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                        tx.status === 'rejected' ? "bg-destructive/10 text-destructive border-destructive/20" :
+                          "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                        }`}>
+                        {tx.status}
+                      </Badge>
+                    </td>
+                    <td className="p-4 text-xs text-muted-foreground">
+                      {new Date(tx.created_at).toLocaleDateString(language, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="p-4 text-right">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 text-muted-foreground group-hover:text-primary transition-colors">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {allTransactions.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="p-12 text-center text-muted-foreground">
+                      No transactions found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Transaction Details Dialog */}
+      <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
+        <DialogContent className="glass border-border/50 max-w-md p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="font-display flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              {t.transactionDetails}
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="px-6 mt-1 text-xs">
+            Review the specifics of this financial activity.
+          </DialogDescription>
+          {selectedTx && (
+            <div className="p-6 space-y-6">
+              <div className="flex flex-col items-center justify-center p-8 rounded-3xl bg-primary/5 border border-primary/10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5">
+                  <ShieldCheck className="w-20 h-20 text-primary" />
+                </div>
+                <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">{t.amount}</div>
+                <div className="text-4xl font-display font-bold text-foreground">
+                  {profile?.currency} {selectedTx.amount.toLocaleString()}
+                </div>
+                <Badge className={`mt-4 text-[10px] uppercase px-3 py-1 rounded-full border shadow-none ${selectedTx.status === 'approved' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                  selectedTx.status === 'rejected' ? "bg-destructive/10 text-destructive border-destructive/20" :
+                    "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                  }`}>
+                  {selectedTx.status}
+                </Badge>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center py-3 border-b border-border/10">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{t.type}</span>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center ${selectedTx.type === 'deposit' ? 'bg-emerald-500/10 text-emerald-500' :
+                      selectedTx.type === 'withdrawal' ? 'bg-blue-500/10 text-blue-500' :
+                        'bg-amber-500/10 text-amber-500'
+                      }`}>
+                      {selectedTx.type === 'deposit' ? <ArrowUpRight className="w-3 h-3" /> :
+                        selectedTx.type === 'withdrawal' ? <ArrowDownRight className="w-3 h-3" /> :
+                          <TrendingUp className="w-3 h-3" />}
+                    </div>
+                    <span className="text-sm font-bold capitalize">{selectedTx.type}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center py-3 border-b border-border/10">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{t.date}</span>
+                  <div className="flex items-center gap-2 text-sm font-bold">
+                    <Calendar className="w-4 h-4 text-primary/60" />
+                    {new Date(selectedTx.created_at).toLocaleDateString(language, {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </div>
+                </div>
+
+                {selectedTx.type === 'withdrawal' && (
+                  <>
+                    {(() => {
+                      const details = parseWithdrawalDetails(selectedTx.receipt_url);
+                      if (!details) return null;
+                      return (
+                        <div className="space-y-4 pt-2">
+                          <div className="space-y-2">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{t.method}</span>
+                            <div className="flex items-center gap-2 text-sm font-bold bg-muted/30 p-3 rounded-xl border border-border/10">
+                              <CreditCard className="w-4 h-4 text-primary" />
+                              {details.method || 'N/A'}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{t.accountDetails}</span>
+                            <div className="text-sm font-medium bg-muted/30 p-4 rounded-xl border border-border/10 whitespace-pre-wrap break-all font-mono leading-relaxed">
+                              {details.details || details}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
+
+                {selectedTx.rejection_reason && (
+                  <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/10 mt-4">
+                    <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-destructive tracking-widest mb-2">
+                      <XCircle className="w-3 h-3" /> {t.rejectionReason}
+                    </div>
+                    <p className="text-sm text-foreground/80 font-medium leading-relaxed">{selectedTx.rejection_reason}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <div className="p-6 bg-muted/10 border-t border-border/10">
+            <Button className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-12 shadow-lg shadow-primary/20" onClick={() => setSelectedTx(null)}>
+              {t.close}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

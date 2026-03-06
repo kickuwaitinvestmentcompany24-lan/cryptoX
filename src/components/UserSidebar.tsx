@@ -100,6 +100,17 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
                                 <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">{t.investorAccount}</div>
                             </div>
                         </div>
+
+                        {!profile?.onboarding_completed && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-[10px] h-8 font-bold uppercase tracking-wider bg-primary/10 border-primary/20 hover:bg-primary/20 text-primary transition-all"
+                                onClick={() => window.dispatchEvent(new CustomEvent("open-onboarding"))}
+                            >
+                                {t.completeProfile}
+                            </Button>
+                        )}
                     </div>
                 )}
 

@@ -99,7 +99,8 @@ export const translations = {
             logout: "Logout",
             investorAccount: "Investor Account",
             tradingHub: "Trading Hub",
-            guestUser: "Guest User"
+            guestUser: "Guest User",
+            completeProfile: "Complete Profile"
         },
         dashboard: {
             title: "Dashboard",
@@ -146,7 +147,18 @@ export const translations = {
             investmentSuccessful: "Investment Successful",
             investmentSuccessfulDesc: "You have successfully invested in {planName}.",
             investmentFailed: "Investment Failed",
-            for: "for"
+            for: "for",
+            recentTransactions: "Recent Transactions",
+            viewAll: "View All",
+            type: "Type",
+            amount: "Amount",
+            status: "Status",
+            date: "Date",
+            transactionDetails: "Transaction Details",
+            method: "Method",
+            accountDetails: "Account Details",
+            rejectionReason: "Rejection Reason",
+            close: "Close"
         },
         support: {
             title: "Support Center",
@@ -185,6 +197,7 @@ export const translations = {
             address: "Home Address",
             addressPlaceholder: "123 Street Name, City, State",
             submit: "Complete Onboarding",
+            completeLater: "Complete Later",
             uploadFailed: "Upload Failed",
             incompleteForm: "Incomplete Form",
             incompleteFormDesc: "Please fill in all necessary information.",
@@ -381,7 +394,8 @@ export const translations = {
             logout: "تسجيل الخروج",
             investorAccount: "حساب مستثمر",
             tradingHub: "مركز التداول",
-            guestUser: "مستخدم زائر"
+            guestUser: "مستخدم زائر",
+            completeProfile: "إكمال الملف الشخصي"
         },
         dashboard: {
             title: "لوحة التحكم",
@@ -428,7 +442,18 @@ export const translations = {
             investmentSuccessful: "تم الاستثمار بنجاح",
             investmentSuccessfulDesc: "لقد استثمرت بنجاح في {planName}.",
             investmentFailed: "فشل الاستثمار",
-            for: "لـ"
+            for: "لـ",
+            recentTransactions: "المعاملات الأخيرة",
+            viewAll: "عرض الكل",
+            type: "النوع",
+            amount: "المبلغ",
+            status: "الحالة",
+            date: "التاريخ",
+            transactionDetails: "تفاصيل المعاملة",
+            method: "الطريقة",
+            accountDetails: "تفاصيل الحساب",
+            rejectionReason: "سبب الرفض",
+            close: "إغلاق"
         },
         support: {
             title: "مركز الدعم",
@@ -467,6 +492,7 @@ export const translations = {
             address: "عنوان المنزل",
             addressPlaceholder: "123 اسم الشارع، المدينة، الولاية",
             submit: "إكمال الإعداد",
+            completeLater: "الإكمال لاحقاً",
             uploadFailed: "فشل التحميل",
             incompleteForm: "نموذج غير مكتمل",
             incompleteFormDesc: "يرجى ملء جميع المعلومات اللازمة.",
@@ -663,7 +689,8 @@ export const translations = {
             logout: "Déconnexion",
             investorAccount: "Compte Investisseur",
             tradingHub: "Centre de Trading",
-            guestUser: "Utilisateur Invité"
+            guestUser: "Utilisateur Invité",
+            completeProfile: "Compléter le Profil"
         },
         dashboard: {
             title: "Tableau de Bord",
@@ -710,7 +737,18 @@ export const translations = {
             investmentSuccessful: "Investissement Réussi",
             investmentSuccessfulDesc: "Vous avez investi avec succès dans {planName}.",
             investmentFailed: "Échec de l'Investissement",
-            for: "pour"
+            for: "pour",
+            recentTransactions: "Transactions Récentes",
+            viewAll: "Voir Tout",
+            type: "Type",
+            amount: "Montant",
+            status: "Statut",
+            date: "Date",
+            transactionDetails: "Détails de la Transaction",
+            method: "Méthode",
+            accountDetails: "Détails du Compte",
+            rejectionReason: "Motif de Rejet",
+            close: "Fermer"
         },
         support: {
             title: "Centre de Support",
@@ -749,6 +787,7 @@ export const translations = {
             address: "Adresse personnelle",
             addressPlaceholder: "123 Nom de rue, Ville, État",
             submit: "Compléter l'intégration",
+            completeLater: "Plus tard",
             uploadFailed: "Échec du téléchargement",
             incompleteForm: "Formulaire incomplet",
             incompleteFormDesc: "Veuillez remplir toutes les informations nécessaires.",
@@ -945,7 +984,8 @@ export const translations = {
             logout: "Cerrar Sesión",
             investorAccount: "Cuenta de Inversor",
             tradingHub: "Centro de Trading",
-            guestUser: "Usuario Invitado"
+            guestUser: "Usuario Invitado",
+            completeProfile: "Completar Perfil"
         },
         dashboard: {
             title: "Panel de Control",
@@ -992,7 +1032,18 @@ export const translations = {
             investmentSuccessful: "Inversión Exitosa",
             investmentSuccessfulDesc: "Has invertido exitosamente en {planName}.",
             investmentFailed: "Inversión Fallida",
-            for: "por"
+            for: "por",
+            recentTransactions: "Transacciones Recientes",
+            viewAll: "Ver Todo",
+            type: "Tipo",
+            amount: "Monto",
+            status: "Estado",
+            date: "Fecha",
+            transactionDetails: "Detalles de la Transacción",
+            method: "Método",
+            accountDetails: "Detalles de la Cuenta",
+            rejectionReason: "Motivo de Rechazo",
+            close: "Cerrar"
         },
         support: {
             title: "Centro de Soporte",
@@ -1031,6 +1082,7 @@ export const translations = {
             address: "Dirección particular",
             addressPlaceholder: "123 Nombre de calle, Ciudad, Estado",
             submit: "Completar integración",
+            completeLater: "Completar más tarde",
             uploadFailed: "Error al subir",
             incompleteForm: "Formulario incompleto",
             incompleteFormDesc: "Por favor, completa toda la información necesaria.",
@@ -1227,7 +1279,8 @@ export const translations = {
             logout: "Abmelden",
             investorAccount: "Investorenkonto",
             tradingHub: "Trading Hub",
-            guestUser: "Gastbenutzer"
+            guestUser: "Gastbenutzer",
+            completeProfile: "Profil vervollständigen"
         },
         dashboard: {
             title: "Dashboard",
@@ -1274,7 +1327,18 @@ export const translations = {
             investmentSuccessful: "Investition erfolgreich",
             investmentSuccessfulDesc: "Sie haben erfolgreich in {planName} investiert.",
             investmentFailed: "Investition fehlgeschlagen",
-            for: "für"
+            for: "für",
+            recentTransactions: "Letzte Transaktionen",
+            viewAll: "Alle ansehen",
+            type: "Typ",
+            amount: "Betrag",
+            status: "Status",
+            date: "Datum",
+            transactionDetails: "Transaktionsdetails",
+            method: "Methode",
+            accountDetails: "Kontodetails",
+            rejectionReason: "Ablehnungsgrund",
+            close: "Schließen"
 
         },
         support: {
@@ -1314,6 +1378,7 @@ export const translations = {
             address: "Heimatadresse",
             addressPlaceholder: "123 Straßenname, Stadt, Bundesland",
             submit: "Onboarding abschließen",
+            completeLater: "Später ausfüllen",
             uploadFailed: "Upload fehlgeschlagen",
             incompleteForm: "Unvollständiges Formular",
             incompleteFormDesc: "Bitte füllen Sie alle notwendigen Informationen aus.",
@@ -1510,7 +1575,8 @@ export const translations = {
             logout: "退出登录",
             investorAccount: "投资者账户",
             tradingHub: "交易枢纽",
-            guestUser: "访客用户"
+            guestUser: "访客用户",
+            completeProfile: "完善个人资料"
         },
         dashboard: {
             title: "仪表板",
@@ -1557,7 +1623,18 @@ export const translations = {
             investmentSuccessful: "投资成功",
             investmentSuccessfulDesc: "您已成功投资 {planName}。",
             investmentFailed: "投资失败",
-            for: "用于"
+            for: "用于",
+            recentTransactions: "最近交易",
+            viewAll: "查看全部",
+            type: "类型",
+            amount: "金额",
+            status: "状态",
+            date: "日期",
+            transactionDetails: "交易详情",
+            method: "方式",
+            accountDetails: "账户详情",
+            rejectionReason: "拒绝原因",
+            close: "关闭"
 
         },
         support: {
@@ -1597,6 +1674,7 @@ export const translations = {
             address: "家庭住址",
             addressPlaceholder: "123 街道名称，城市，省份",
             submit: "完成新手引导",
+            completeLater: "稍后完善",
             uploadFailed: "上传失败",
             incompleteForm: "表单不完整",
             incompleteFormDesc: "请填写所有必要信息。",
@@ -1793,7 +1871,8 @@ export const translations = {
             logout: "ログアウト",
             investorAccount: "投資家アカウント",
             tradingHub: "Trading Hub",
-            guestUser: "ゲストユーザー"
+            guestUser: "ゲストユーザー",
+            completeProfile: "プロフィールを完成させる"
         },
         dashboard: {
             title: "ダッシュボード",
@@ -1840,7 +1919,18 @@ export const translations = {
             investmentSuccessful: "投資成功",
             investmentSuccessfulDesc: "{planName}への投資が正常に完了しました。",
             investmentFailed: "投資失敗",
-            for: "の"
+            for: "の",
+            recentTransactions: "最近の取引",
+            viewAll: "すべて表示",
+            type: "タイプ",
+            amount: "金額",
+            status: "ステータス",
+            date: "日付",
+            transactionDetails: "取引の詳細",
+            method: "方法",
+            accountDetails: "口座の詳細",
+            rejectionReason: "拒否理由",
+            close: "閉じる"
         },
         support: {
             title: "サポートセンター",
@@ -1879,6 +1969,7 @@ export const translations = {
             address: "住所",
             addressPlaceholder: "123 通り名, 市, 県",
             submit: "オンボーディングを完了",
+            completeLater: "後で完了する",
             uploadFailed: "アップロードに失敗しました",
             incompleteForm: "入力不備",
             incompleteFormDesc: "必要な情報をすべて入力してください。",
