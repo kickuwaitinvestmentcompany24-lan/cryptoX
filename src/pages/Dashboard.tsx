@@ -16,15 +16,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { DepositModal } from "@/components/DepositModal";
 import { WithdrawalModal } from "@/components/WithdrawalModal";
-import { SupportModal } from "@/components/SupportModal";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { X, Info } from "lucide-react";
+import { X, Info, Edit2 } from "lucide-react";
 import { updateProfile, getTransactions, getInvestmentPlans, getActiveInvestments, investInPlan, ActiveInvestment, InvestmentPlan, Transaction } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { translations } from "@/lib/translations";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { EditProfileModal } from "@/components/EditProfileModal";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +47,7 @@ const Dashboard = () => {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(() => localStorage.getItem("isDepositModalOpen") === "true");
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(() => localStorage.getItem("isWithdrawalModalOpen") === "true");
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   React.useEffect(() => {
     localStorage.setItem("isDepositModalOpen", isDepositModalOpen.toString());
@@ -341,6 +341,11 @@ const Dashboard = () => {
         isOpen={isWithdrawalModalOpen}
         onOpenChange={setIsWithdrawalModalOpen}
       />
+
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onOpenChange={setIsEditProfileOpen}
+      />
       <SupportModal
         isOpen={isSupportModalOpen}
         onOpenChange={setIsSupportModalOpen}
@@ -426,9 +431,20 @@ const Dashboard = () => {
       </div>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground rtl:text-right">
-            {t.title}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground rtl:text-right">
+              {t.title}
+            </h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsEditProfileOpen(true)}
+              className="h-8 w-8 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
+              title={translations[language].editProfile?.title || "Edit Profile"}
+            >
+              <Edit2 className="w-4 h-4" />
+            </Button>
+          </div>
           <div className="flex flex-wrap gap-2 md:gap-3">
             <Button
               onClick={() => setIsDepositModalOpen(true)}

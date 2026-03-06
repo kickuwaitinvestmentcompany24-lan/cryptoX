@@ -102,6 +102,22 @@ export const translations = {
             guestUser: "Guest User",
             completeProfile: "Complete Profile"
         },
+        editProfile: {
+            title: "Edit Profile",
+            fullName: "Full Name",
+            fullNamePlaceholder: "Enter your full name",
+            phone: "Phone Number",
+            phonePlaceholder: "Enter your phone number",
+            address: "Home Address",
+            addressPlaceholder: "Enter your home address",
+            country: "Country",
+            selectCountry: "Select Country",
+            save: "Save Changes",
+            saving: "Saving...",
+            success: "Profile Updated",
+            successDesc: "Your profile information has been successfully updated.",
+            updateFailed: "Update Failed"
+        },
         dashboard: {
             title: "Dashboard",
             welcome: "Welcome back. Here's your portfolio overview.",
@@ -396,6 +412,22 @@ export const translations = {
             tradingHub: "مركز التداول",
             guestUser: "مستخدم زائر",
             completeProfile: "إكمال الملف الشخصي"
+        },
+        editProfile: {
+            title: "تعديل الملف الشخصي",
+            fullName: "الاسم الكامل",
+            fullNamePlaceholder: "أدخل اسمك الكامل",
+            phone: "رقم الهاتف",
+            phonePlaceholder: "أدخل رقم هاتفك",
+            address: "عنوان السكن",
+            addressPlaceholder: "أدخل عنوان سكنك",
+            country: "البلد",
+            selectCountry: "اختر البلد",
+            save: "حفظ التغييرات",
+            saving: "جاري الحفظ...",
+            success: "تم تحديث الملف الشخصي",
+            successDesc: "تم تحديث معلومات ملفك الشخصي بنجاح.",
+            updateFailed: "فشل التحديث"
         },
         dashboard: {
             title: "لوحة التحكم",
@@ -692,6 +724,22 @@ export const translations = {
             guestUser: "Utilisateur Invité",
             completeProfile: "Compléter le Profil"
         },
+        editProfile: {
+            title: "Modifier le profil",
+            fullName: "Nom complet",
+            fullNamePlaceholder: "Entrez votre nom complet",
+            phone: "Numéro de téléphone",
+            phonePlaceholder: "Entrez votre numéro de téléphone",
+            address: "Adresse personnelle",
+            addressPlaceholder: "Entrez votre adresse personnelle",
+            country: "Pays",
+            selectCountry: "Choisissez le pays",
+            save: "Enregistrer les modifications",
+            saving: "Enregistrement...",
+            success: "Profil mis à jour",
+            successDesc: "Vos informations de profil ont été mises à jour avec succès.",
+            updateFailed: "Échec de la mise à jour"
+        },
         dashboard: {
             title: "Tableau de Bord",
             welcome: "Bon retour. Voici l'aperçu de votre portefeuille.",
@@ -987,6 +1035,22 @@ export const translations = {
             guestUser: "Usuario Invitado",
             completeProfile: "Completar Perfil"
         },
+        editProfile: {
+            title: "Editar perfil",
+            fullName: "Nombre completo",
+            fullNamePlaceholder: "Ingrese su nombre completo",
+            phone: "Número de teléfono",
+            phonePlaceholder: "Ingrese su número de teléfono",
+            address: "Dirección de casa",
+            addressPlaceholder: "Ingrese su dirección de casa",
+            country: "País",
+            selectCountry: "Seleccionar país",
+            save: "Guardar cambios",
+            saving: "Guardando...",
+            success: "Perfil actualizado",
+            successDesc: "La información de su perfil se ha actualizado correctamente.",
+            updateFailed: "Error al actualizar"
+        },
         dashboard: {
             title: "Panel de Control",
             welcome: "Bienvenido de nuevo. Aquí tienes el resumen de tu cartera.",
@@ -1281,6 +1345,22 @@ export const translations = {
             tradingHub: "Trading Hub",
             guestUser: "Gastbenutzer",
             completeProfile: "Profil vervollständigen"
+        },
+        editProfile: {
+            title: "Profil bearbeiten",
+            fullName: "Vollständiger Name",
+            fullNamePlaceholder: "Geben Sie Ihren vollständigen Namen ein",
+            phone: "Telefonnummer",
+            phonePlaceholder: "Geben Sie Ihre Telefonnummer ein",
+            address: "Heimatadresse",
+            addressPlaceholder: "Geben Sie Ihre Heimatadresse ein",
+            country: "Land",
+            selectCountry: "Land auswählen",
+            save: "Änderungen speichern",
+            saving: "Speichern...",
+            success: "Profil aktualisiert",
+            successDesc: "Ihre Profilinformationen wurden erfolgreich aktualisiert.",
+            updateFailed: "Aktualisierung fehlgeschlagen"
         },
         dashboard: {
             title: "Dashboard",
@@ -1578,6 +1658,22 @@ export const translations = {
             guestUser: "访客用户",
             completeProfile: "完善个人资料"
         },
+        editProfile: {
+            title: "编辑个人资料",
+            fullName: "全名",
+            fullNamePlaceholder: "输入您的全名",
+            phone: "电话号码",
+            phonePlaceholder: "输入您的电话号码",
+            address: "家庭住址",
+            addressPlaceholder: "输入您的家庭住址",
+            country: "国家",
+            selectCountry: "选择国家",
+            save: "保存更改",
+            saving: "正在保存...",
+            success: "个人资料已更新",
+            successDesc: "您的个人资料信息已成功更新。",
+            updateFailed: "更新失败"
+        },
         dashboard: {
             title: "仪表板",
             welcome: "欢迎回来。这是您的投资组合概览。",
@@ -1873,6 +1969,22 @@ export const translations = {
             tradingHub: "Trading Hub",
             guestUser: "ゲストユーザー",
             completeProfile: "プロフィールを完成させる"
+        },
+        editProfile: {
+            title: "プロフィールの編集",
+            fullName: "氏名",
+            fullNamePlaceholder: "氏名を入力してください",
+            phone: "電話番号",
+            phonePlaceholder: "電話番号を入力してください",
+            address: "住所",
+            addressPlaceholder: "住所を入力してください",
+            country: "国",
+            selectCountry: "国を選択",
+            save: "変更を保存",
+            saving: "保存中...",
+            success: "プロフィールを更新しました",
+            successDesc: "プロフィールの情報が正常に更新されました。",
+            updateFailed: "更新に失敗しました"
         },
         dashboard: {
             title: "ダッシュボード",
