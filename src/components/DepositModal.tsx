@@ -23,6 +23,24 @@ interface DepositModalProps {
     onOpenChange: (open: boolean) => void;
 }
 
+// IndexedDB logic for file persistence
+const DB_NAME = "deposit_file_db";
+const STORE_NAME = "files";
+const FILE_KEY = "current_receipt";
+
+const openDB = (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = () => {
+            if (!request.result.objectStoreNames.contains(STORE_NAME)) {
+                request.result.createObjectStore(STORE_NAME);
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+};
+
 export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange }) => {
     const { profile, refreshProfile } = useAuth();
     const { language, isRTL } = useLanguage();
@@ -42,6 +60,56 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
     const [selectedMethod, setSelectedMethod] = useState<DepositMethod | null>(null);
     const [copied, setCopied] = useState(false);
     const [copiedAddress, setCopiedAddress] = useState(false);
+
+    // Save/Restore File from IndexedDB
+    React.useEffect(() => {
+        const restoreFile = async () => {
+            try {
+                const db = await openDB();
+                const tx = db.transaction(STORE_NAME, "readonly");
+                const request = tx.objectStore(STORE_NAME).get(FILE_KEY);
+                request.onsuccess = () => {
+                    if (request.result instanceof File) {
+                        setFile(request.result);
+                    }
+                };
+            } catch (err) {
+                console.error("Failed to restore file from IndexedDB:", err);
+            }
+        };
+
+        if (isOpen) {
+            restoreFile();
+        }
+    }, [isOpen]);
+
+    const handleFileChange = async (newFile: File | null) => {
+        setFile(newFile);
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            if (newFile) {
+                tx.objectStore(STORE_NAME).put(newFile, FILE_KEY);
+            } else {
+                tx.objectStore(STORE_NAME).delete(FILE_KEY);
+            }
+        } catch (err) {
+            console.error("Failed to sync file to IndexedDB:", err);
+        }
+    };
+
+    const clearLocalPersistence = async () => {
+        localStorage.removeItem(STORAGE_KEY_AMOUNT);
+        localStorage.removeItem(STORAGE_KEY_METHOD);
+        localStorage.removeItem("isDepositModalOpen");
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            tx.objectStore(STORE_NAME).delete(FILE_KEY);
+        } catch (err) {
+            console.error("Failed to clear file from IndexedDB:", err);
+        }
+    };
 
     // Save to localStorage whenever state changes
     React.useEffect(() => {
@@ -127,11 +195,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                 description: t.successDesc
             });
 
-            // Clear all local state
-            localStorage.removeItem(STORAGE_KEY_AMOUNT);
-            localStorage.removeItem(STORAGE_KEY_METHOD);
-            localStorage.removeItem("isDepositModalOpen");
-
+            await clearLocalPersistence();
             setAmount("");
             setFile(null);
             onOpenChange(false);
@@ -146,9 +210,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
     return (
         <Dialog open={isOpen} onOpenChange={(open) => {
             if (!open) {
-                localStorage.removeItem(STORAGE_KEY_AMOUNT);
-                localStorage.removeItem(STORAGE_KEY_METHOD);
-                localStorage.removeItem("isDepositModalOpen");
+                clearLocalPersistence();
             }
             onOpenChange(open);
         }}>
@@ -175,6 +237,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                             </p>
                         </div>
                         <Button
+                            type="button"
                             onClick={() => {
                                 onOpenChange(false);
                                 navigate("/kyc");
@@ -186,7 +249,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                     </div>
                 ) : (
                     <div className="space-y-6 py-4 overflow-y-auto max-h-[65vh] pr-1 custom-scrollbar">
-                        {(amount || (selectedMethod && localStorage.getItem(STORAGE_KEY_METHOD))) && !isSubmitting && (
+                        {(amount || (selectedMethod && localStorage.getItem(STORAGE_KEY_METHOD)) || file) && !isSubmitting && (
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -250,6 +313,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                                             {selectedMethod.details}
                                         </div>
                                         <Button
+                                            type="button"
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-all"
@@ -268,6 +332,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                                                 {selectedMethod.account_number}
                                             </div>
                                             <Button
+                                                type="button"
                                                 variant="ghost"
                                                 size="icon"
                                                 className={`h-9 w-9 shrink-0 transition-all ${copiedAddress
@@ -303,13 +368,13 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                                     type="file"
                                     className="hidden"
                                     accept="image/*,.pdf"
-                                    onChange={(e) => e.target.files?.[0] && setFile(e.target.files[0])}
+                                    onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
                                 />
                                 {file ? (
                                     <div className="flex items-center justify-center gap-2">
                                         <FileText className="w-5 h-5 text-primary" />
                                         <span className="text-sm truncate max-w-[200px]">{file.name}</span>
-                                        <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }}>
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}>
                                             <X className="w-4 h-4 text-muted-foreground" />
                                         </button>
                                     </div>
@@ -323,8 +388,9 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                         </div>
 
                         <DialogFooter className="gap-2">
-                            <Button variant="outline" onClick={() => onOpenChange(false)}>{t.cancel}</Button>
+                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t.cancel}</Button>
                             <Button
+                                type="button"
                                 onClick={handleDeposit}
                                 className="bg-primary hover:bg-primary/90 glow-emerald"
                                 disabled={isSubmitting}
@@ -338,3 +404,4 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
         </Dialog>
     );
 };
+
