@@ -405,24 +405,24 @@ const Dashboard = () => {
         </Button>
       </div>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-          <h1 className="font-display text-3xl font-bold text-foreground rtl:text-right">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground rtl:text-right">
             {t.title}
           </h1>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3">
             <Button
               onClick={() => setIsDepositModalOpen(true)}
-              className="bg-primary hover:bg-primary/90 glow-emerald font-bold gap-2 px-6"
+              className="flex-1 sm:flex-none justify-center bg-primary hover:bg-primary/90 glow-emerald font-bold gap-2 px-4 md:px-6 h-11 md:h-12"
             >
-              <ArrowUpRight className="w-5 h-5" />
+              <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5" />
               {t.deposit}
             </Button>
             <Button
               onClick={() => setIsWithdrawalModalOpen(true)}
               variant="outline"
-              className="border-primary/50 hover:bg-primary/10 text-primary font-bold gap-2 px-6"
+              className="flex-1 sm:flex-none justify-center border-primary/50 hover:bg-primary/10 text-primary font-bold gap-2 px-4 md:px-6 h-11 md:h-12"
             >
-              <ArrowDownRight className="w-5 h-5" />
+              <ArrowDownRight className="w-4 h-4 md:w-5 md:h-5" />
               {t.withdraw}
             </Button>
             <Button
@@ -430,46 +430,51 @@ const Dashboard = () => {
                 const plansSection = document.getElementById('explore-plans');
                 plansSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 font-bold gap-2 px-6"
+              className="w-full sm:w-auto justify-center bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 font-bold gap-2 px-4 md:px-6 h-11 md:h-12"
             >
-              <Box className="w-5 h-5" />
+              <Box className="w-4 h-4 md:w-5 md:h-5" />
               {t.explorePlans}
             </Button>
             <Button
               onClick={() => setIsSupportModalOpen(true)}
               variant="outline"
-              className="border-border/50 hover:bg-muted/20 gap-2 px-5"
+              className="w-full sm:w-auto justify-center border-border/50 hover:bg-muted/20 gap-2 px-4 md:px-5 h-11 md:h-12"
             >
               <MessageSquare className="w-4 h-4" />
               {t.support}
             </Button>
           </div>
         </div>
-        <p className="text-muted-foreground mb-8 rtl:text-right">
+        <p className="text-sm md:text-base text-muted-foreground mb-8 rtl:text-right">
           {t.welcome}
         </p>
       </motion.div>
 
       {/* Summary Cards */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
         {summaryCards.map((card, i) => (
-          <motion.div key={card.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-            <Card className="glass overflow-hidden relative group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <card.icon className="w-16 h-16 text-primary" />
+          <motion.div
+            key={card.title}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Card className="glass relative group hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 border-primary/10">
+              <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
+                <card.icon className="w-12 h-12 text-primary" />
               </div>
-              <CardContent className="p-6">
+              <CardContent className="p-5 md:p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                    <card.icon className="w-6 h-6 text-primary" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                    <card.icon className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                   </div>
-                  <span className={`text - xs font - bold px - 2 py - 1 rounded - full flex items - center gap - 1 ${card.positive ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"} `}>
+                  <Badge variant="outline" className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border-none ${card.positive ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
                     {card.positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                     {card.change}
-                  </span>
+                  </Badge>
                 </div>
-                <div className="text-3xl font-display font-bold text-foreground tracking-tight">{card.value}</div>
-                <div className="text-sm font-medium text-muted-foreground mt-1">{card.title}</div>
+                <div className="text-2xl md:text-3xl font-display font-bold text-foreground tracking-tight">{card.value}</div>
+                <div className="text-xs md:text-sm font-medium text-muted-foreground mt-1">{card.title}</div>
               </CardContent>
             </Card>
           </motion.div>

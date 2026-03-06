@@ -34,7 +34,7 @@
     --input: 0 0% 14%;
     --ring: 152 80% 45%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     --emerald-glow: 152 80% 45%;
 
@@ -46,6 +46,12 @@
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 0 0% 14%;
     --sidebar-ring: 152 80% 45%;
+  }
+
+  /* Mobile-first touch targets */
+  button,
+  a {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
   }
 }
 
@@ -207,5 +213,13 @@
       0 4px 32px -4px hsl(152 80% 45% / 0.3),
       0 0 12px -2px hsl(152 80% 45% / 0.15),
       inset 0 1px 0 0 hsl(152 80% 70% / 0.12) !important;
+  }
+
+  .mobile-card-stack {
+    @apply flex flex-col gap-4 md:grid md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

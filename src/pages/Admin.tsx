@@ -337,16 +337,16 @@ const Admin = () => {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-8"
       >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground capitalize">{activeTab.replace('-', ' ')}</h1>
-            <p className="text-muted-foreground">Manage and monitor your platform operations.</p>
+            <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-foreground capitalize tracking-tight">{activeTab.replace('-', ' ')}</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage and monitor your platform operations.</p>
           </div>
-          <div className="relative group max-w-sm w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <div className="relative group w-full sm:max-w-xs md:max-w-sm">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="Search users..."
-              className="pl-10 bg-muted/50 border-border/50 focus:border-primary/50 h-11 rounded-xl"
+              placeholder="Search data..."
+              className="pl-11 bg-muted/30 border-border/30 focus:border-primary/40 h-12 rounded-2xl shadow-inner text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -362,17 +362,17 @@ const Admin = () => {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <TabsContent value="overview" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="glass border-primary/20 bg-primary/5">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+              <TabsContent value="overview" className="space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+                  <Card className="glass border-primary/20 bg-primary/5 shadow-sm">
+                    <CardHeader className="pb-2 px-4">
+                      <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
                         Total Users
-                        <Users className="w-4 h-4 text-primary" />
+                        <Users className="w-3.5 h-3.5 text-primary" />
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{totalUsers}</div>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl font-bold tracking-tight">{totalUsers}</div>
                       <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
                         <TrendingUp className="w-3 h-3 text-primary" />
                         Platform growth active
@@ -380,15 +380,15 @@ const Admin = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass border-primary/20 bg-primary/5">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                  <Card className="glass border-primary/20 bg-primary/5 shadow-sm">
+                    <CardHeader className="pb-2 px-4">
+                      <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
                         Total Deposits
-                        <ArrowDownRight className="w-4 h-4 text-primary" />
+                        <ArrowDownRight className="w-3.5 h-3.5 text-primary" />
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">USD {totalDeposits.toLocaleString()}</div>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl font-bold tracking-tight">USD {totalDeposits.toLocaleString()}</div>
                       <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3 text-primary" />
                         Approved transactions
@@ -396,15 +396,15 @@ const Admin = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass border-primary/20 bg-primary/5">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                  <Card className="glass border-primary/20 bg-primary/5 shadow-sm">
+                    <CardHeader className="pb-2 px-4">
+                      <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
                         Active Investment
-                        <Box className="w-4 h-4 text-primary" />
+                        <Box className="w-3.5 h-3.5 text-primary" />
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">USD {totalInvestment.toLocaleString()}</div>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl font-bold tracking-tight">USD {totalInvestment.toLocaleString()}</div>
                       <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
                         <TrendingUp className="w-3 h-3 text-primary" />
                         Capital under mgmt
@@ -412,48 +412,48 @@ const Admin = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass border-destructive/20 bg-destructive/5">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs font-bold uppercase tracking-wider text-destructive/80 flex items-center justify-between">
+                  <Card className="glass border-destructive/20 bg-destructive/5 shadow-sm">
+                    <CardHeader className="pb-2 px-4">
+                      <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-destructive/80 flex items-center justify-between">
                         Pending Actions
-                        <AlertCircle className="w-4 h-4 text-destructive" />
+                        <AlertCircle className="w-3.5 h-3.5 text-destructive" />
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-destructive">{totalPending}</div>
-                      <div className="flex gap-2 mt-2">
-                        {pendingKycs > 0 && <Badge variant="outline" className="text-[8px] h-4 bg-yellow-500/10 text-yellow-500 border-yellow-500/20">{pendingKycs} KYC</Badge>}
-                        {pendingDeposits > 0 && <Badge variant="outline" className="text-[8px] h-4 bg-primary/10 text-primary border-primary/20">{pendingDeposits} Dep</Badge>}
-                        {pendingWithdrawals > 0 && <Badge variant="outline" className="text-[8px] h-4 bg-destructive/10 text-destructive border-destructive/20">{pendingWithdrawals} Wdr</Badge>}
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl font-bold text-destructive tracking-tight">{totalPending}</div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {pendingKycs > 0 && <Badge variant="outline" className="text-[8px] h-4 bg-yellow-500/10 text-yellow-500 border-yellow-500/20 px-1.5">{pendingKycs} KYC</Badge>}
+                        {pendingDeposits > 0 && <Badge variant="outline" className="text-[8px] h-4 bg-primary/10 text-primary border-primary/20 px-1.5">{pendingDeposits} Dep</Badge>}
+                        {pendingWithdrawals > 0 && <Badge variant="outline" className="text-[8px] h-4 bg-destructive/10 text-destructive border-destructive/20 px-1.5">{pendingWithdrawals} Wdr</Badge>}
                       </div>
                     </CardContent>
                   </Card>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <Card className="glass lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="font-display text-lg">Recent Activity</CardTitle>
-                      <CardDescription>Latest platform events and transactions.</CardDescription>
+                  <Card className="glass lg:col-span-2 border-border/30">
+                    <CardHeader className="px-4 md:px-6">
+                      <CardTitle className="font-display text-lg md:text-xl">Recent Activity</CardTitle>
+                      <CardDescription className="text-sm">Latest platform events and transactions.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
+                    <CardContent className="px-4 md:px-6">
+                      <div className="space-y-3">
                         {transactions.slice(0, 5).map((tx) => (
-                          <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl border border-border/20 bg-muted/5">
-                            <div className="flex items-center gap-3">
-                              <div className={`p-2 rounded-lg ${tx.type === 'deposit' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                          <div key={tx.id} className="flex items-center justify-between p-3.5 rounded-2xl border border-border/20 bg-muted/5 group hover:border-primary/20 transition-colors">
+                            <div className="flex items-center gap-3.5 text-left">
+                              <div className={`p-2.5 rounded-xl ${tx.type === 'deposit' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
                                 {tx.type === 'deposit' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                               </div>
-                              <div>
-                                <div className="text-sm font-medium">{tx.profiles?.display_name}</div>
-                                <div className="text-[10px] text-muted-foreground uppercase">{tx.type} · {new Date(tx.created_at).toLocaleDateString()}</div>
+                              <div className="flex flex-col min-w-0">
+                                <div className="text-sm font-bold truncate pr-2">{tx.profiles?.display_name || "Unknown"}</div>
+                                <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">{tx.type} · {new Date(tx.created_at).toLocaleDateString()}</div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className={`text-sm font-bold ${tx.status === 'approved' ? 'text-primary' : tx.status === 'rejected' ? 'text-destructive' : 'text-yellow-500'}`}>
+                            <div className="text-right shrink-0">
+                              <div className={`text-sm font-mono font-bold ${tx.status === 'approved' ? 'text-primary' : tx.status === 'rejected' ? 'text-destructive' : 'text-yellow-500'}`}>
                                 {tx.profiles?.currency} {tx.amount.toLocaleString()}
                               </div>
-                              <div className="text-[10px] uppercase text-muted-foreground">{tx.status}</div>
+                              <div className="text-[10px] uppercase font-bold text-muted-foreground/80 tracking-tighter">{tx.status}</div>
                             </div>
                           </div>
                         ))}
@@ -461,30 +461,30 @@ const Admin = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass">
-                    <CardHeader>
-                      <CardTitle className="font-display text-lg">Quick Access</CardTitle>
-                      <CardDescription>Shortcut to main actions.</CardDescription>
+                  <Card className="glass border-border/30">
+                    <CardHeader className="px-4 md:px-6">
+                      <CardTitle className="font-display text-lg md:text-xl">Quick Access</CardTitle>
+                      <CardDescription className="text-sm">Shortcut to main actions.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Button variant="outline" className="w-full justify-start gap-3 border-primary/20 hover:bg-primary/10" onClick={() => setActiveTab('kyc')}>
-                        <ShieldCheck className="w-4 h-4 text-primary" />
-                        Review Pending KYC
-                        {pendingKycs > 0 && <Badge className="ml-auto bg-primary text-primary-foreground">{pendingKycs}</Badge>}
+                    <CardContent className="space-y-3 px-4 md:px-6 pb-6">
+                      <Button variant="outline" className="w-full justify-start gap-4 border-primary/20 hover:bg-primary/10 h-12 px-4 rounded-xl group" onClick={() => setActiveTab('kyc')}>
+                        <ShieldCheck className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+                        <span className="text-sm font-medium">Review Pending KYC</span>
+                        {pendingKycs > 0 && <Badge className="ml-auto bg-primary text-primary-foreground text-[10px]">{pendingKycs}</Badge>}
                       </Button>
-                      <Button variant="outline" className="w-full justify-start gap-3 border-primary/20 hover:bg-primary/10" onClick={() => setActiveTab('deposits')}>
-                        <ArrowDownRight className="w-4 h-4 text-primary" />
-                        Manage Deposits
-                        {pendingDeposits > 0 && <Badge className="ml-auto bg-primary text-primary-foreground">{pendingDeposits}</Badge>}
+                      <Button variant="outline" className="w-full justify-start gap-4 border-primary/20 hover:bg-primary/10 h-12 px-4 rounded-xl group" onClick={() => setActiveTab('deposits')}>
+                        <ArrowDownRight className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+                        <span className="text-sm font-medium">Manage Deposits</span>
+                        {pendingDeposits > 0 && <Badge className="ml-auto bg-primary text-primary-foreground text-[10px]">{pendingDeposits}</Badge>}
                       </Button>
-                      <Button variant="outline" className="w-full justify-start gap-3 border-destructive/20 hover:bg-destructive/10" onClick={() => setActiveTab('withdrawals')}>
-                        <ArrowUpRight className="w-4 h-4 text-destructive" />
-                        Manage Withdrawals
-                        {pendingWithdrawals > 0 && <Badge className="ml-auto bg-destructive text-destructive-foreground">{pendingWithdrawals}</Badge>}
+                      <Button variant="outline" className="w-full justify-start gap-4 border-destructive/20 hover:bg-destructive/10 h-12 px-4 rounded-xl group" onClick={() => setActiveTab('withdrawals')}>
+                        <ArrowUpRight className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
+                        <span className="text-sm font-medium">Manage Withdrawals</span>
+                        {pendingWithdrawals > 0 && <Badge className="ml-auto bg-destructive text-destructive-foreground text-[10px]">{pendingWithdrawals}</Badge>}
                       </Button>
-                      <Button variant="outline" className="w-full justify-start gap-3 border-border/20 hover:bg-muted/10" onClick={() => setActiveTab('support')}>
-                        <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                        Open Support Inbox
+                      <Button variant="outline" className="w-full justify-start gap-4 border-border/20 hover:bg-muted/10 h-12 px-4 rounded-xl group" onClick={() => setActiveTab('support')}>
+                        <MessageSquare className="w-4 h-4 text-muted-foreground group-hover:scale-110 transition-transform" />
+                        <span className="text-sm font-medium">Open Support Inbox</span>
                       </Button>
                     </CardContent>
                   </Card>
@@ -492,13 +492,14 @@ const Admin = () => {
               </TabsContent>
 
               <TabsContent value="users">
-                <Card className="glass">
-                  <CardHeader>
-                    <CardTitle className="font-display text-lg">User Management</CardTitle>
-                    <CardDescription>View and manage all registered users.</CardDescription>
+                <Card className="glass border-border/30">
+                  <CardHeader className="px-4 md:px-6">
+                    <CardTitle className="font-display text-lg md:text-xl">User Management</CardTitle>
+                    <CardDescription className="text-sm">View and manage all registered users.</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="rounded-xl overflow-hidden border border-border/30">
+                  <CardContent className="px-2 md:px-6">
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block rounded-xl overflow-hidden border border-border/30">
                       <Table>
                         <TableHeader>
                           {table.getHeaderGroups().map((hg) => (
@@ -527,6 +528,67 @@ const Admin = () => {
                           ))}
                         </TableBody>
                       </Table>
+                    </div>
+
+                    {/* Mobile Card Stack View */}
+                    <div className="md:hidden space-y-3">
+                      {isLoadingUsers ? (
+                        <div className="text-center py-10 text-muted-foreground italic">Loading users...</div>
+                      ) : users.length === 0 ? (
+                        <div className="text-center py-10 text-muted-foreground italic">No users found.</div>
+                      ) : users.map((user) => (
+                        <div key={user.user_id} className={`p-4 rounded-2xl border border-border/30 bg-muted/5 space-y-3 ${user.is_suspended ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                          <div className="flex justify-between items-start">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-foreground">{user.display_name || "No Name"}</span>
+                              <span className="text-[10px] text-muted-foreground font-mono truncate max-w-[150px]">{user.user_id}</span>
+                            </div>
+                            <Badge variant="outline" className={`capitalize text-[10px] px-2 py-0 h-5 ${user.kyc_status === 'approved' ? 'bg-primary/20 text-primary border-primary/30' :
+                              user.kyc_status === 'pending' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                                user.kyc_status === 'rejected' ? 'bg-destructive/20 text-destructive border-destructive/30' :
+                                  'bg-muted text-muted-foreground border-border/30'
+                              }`}>
+                              KYC: {user.kyc_status}
+                            </Badge>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-border/10">
+                            <div>
+                              <div className="text-muted-foreground mb-1 uppercase tracking-widest text-[8px] font-bold">Balance</div>
+                              <div className="font-mono font-bold text-primary">{user.currency} {user.balance?.toLocaleString()}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-muted-foreground mb-1 uppercase tracking-widest text-[8px] font-bold">Investment</div>
+                              <div className="font-mono font-bold text-foreground">{user.currency} {user.investment?.toLocaleString()}</div>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 text-xs h-9 gap-2 border-primary/20 hover:bg-primary/10"
+                              onClick={() => {
+                                setActiveUser(user);
+                                setIsEditModalOpen(true);
+                              }}
+                            >
+                              <Edit3 className="w-3.5 h-3.5" /> Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className={`flex-1 text-xs h-9 gap-2 ${user.is_suspended ? 'text-primary border-primary/20 bg-primary/5' : 'text-yellow-400 border-yellow-400/20 bg-yellow-400/5'}`}
+                              onClick={() => updateProfileMutation.mutate({
+                                id: user.user_id,
+                                updates: { is_suspended: !user.is_suspended }
+                              })}
+                            >
+                              <AlertCircle className="w-3.5 h-3.5" /> {user.is_suspended ? "Unsuspend" : "Suspend"}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>

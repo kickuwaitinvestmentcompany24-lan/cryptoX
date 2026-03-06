@@ -29,7 +29,12 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
     const t = translations[language].deposit;
     const { toast } = useToast();
     const navigate = useNavigate();
-    const [amount, setAmount] = useState("");
+    // Persistent state keys
+    const STORAGE_KEY_AMOUNT = "deposit_draft_amount";
+    const STORAGE_KEY_METHOD = "deposit_draft_method_id";
+
+    // Initial state from localStorage if available
+    const [amount, setAmount] = useState(() => localStorage.getItem(STORAGE_KEY_AMOUNT) || "");
     const [file, setFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [methods, setMethods] = useState<DepositMethod[]>([]);
@@ -37,11 +42,32 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
     const [copied, setCopied] = useState(false);
     const [copiedAddress, setCopiedAddress] = useState(false);
 
+    // Save to localStorage whenever state changes
+    React.useEffect(() => {
+        localStorage.setItem(STORAGE_KEY_AMOUNT, amount);
+    }, [amount]);
+
+    React.useEffect(() => {
+        if (selectedMethod) {
+            localStorage.setItem(STORAGE_KEY_METHOD, selectedMethod.id);
+        }
+    }, [selectedMethod]);
+
     React.useEffect(() => {
         if (isOpen) {
             getPlatformSettings().then(settings => {
                 const depositMethods = settings.find(s => s.key === 'deposit_methods')?.value || [];
-                setMethods(depositMethods.filter((m: DepositMethod) => m.is_active));
+                const activeMethods = depositMethods.filter((m: DepositMethod) => m.is_active);
+                setMethods(activeMethods);
+
+                // Restore method from storage if not already selected
+                if (!selectedMethod) {
+                    const savedMethodId = localStorage.getItem(STORAGE_KEY_METHOD);
+                    if (savedMethodId) {
+                        const savedMethod = activeMethods.find((m: DepositMethod) => m.id === savedMethodId);
+                        if (savedMethod) setSelectedMethod(savedMethod);
+                    }
+                }
             });
         }
     }, [isOpen]);
@@ -103,6 +129,8 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
             onOpenChange(false);
             setAmount("");
             setFile(null);
+            localStorage.removeItem(STORAGE_KEY_AMOUNT);
+            localStorage.removeItem(STORAGE_KEY_METHOD);
             await refreshProfile();
         } catch (error: any) {
             toast({ title: "Deposit Failed", description: error.message, variant: "destructive" });
@@ -147,6 +175,16 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                     </div>
                 ) : (
                     <div className="space-y-6 py-4 overflow-y-auto max-h-[65vh] pr-1 custom-scrollbar">
+                        {(amount || (selectedMethod && localStorage.getItem(STORAGE_KEY_METHOD))) && !isSubmitting && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 w-fit flex items-center gap-2 mx-auto mb-2"
+                            >
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Draft recovered from last session</span>
+                            </motion.div>
+                        )}
                         <div className="space-y-2">
                             <Label className={isRTL ? "text-right block" : ""}>
                                 {t.amountLabel.replace("{currency}", profile?.currency || "USD")}
@@ -163,7 +201,10 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
 
                         <div className="space-y-2">
                             <Label className={isRTL ? "text-right block" : ""}>{t.methodLabel}</Label>
-                            <Select onValueChange={(val) => setSelectedMethod(methods.find(m => m.id === val) || null)}>
+                            <Select
+                                value={selectedMethod?.id || ""}
+                                onValueChange={(val) => setSelectedMethod(methods.find(m => m.id === val) || null)}
+                            >
                                 <SelectTrigger className="bg-muted/30 border-border/50">
                                     <SelectValue placeholder={t.selectMethod} />
                                 </SelectTrigger>
