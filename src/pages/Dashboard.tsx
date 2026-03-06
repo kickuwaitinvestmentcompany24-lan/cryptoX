@@ -24,6 +24,7 @@ import { translations } from "@/lib/translations";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { EditProfileModal } from "@/components/EditProfileModal";
+import { SupportModal } from "@/components/SupportModal";
 import {
   Dialog,
   DialogContent,
