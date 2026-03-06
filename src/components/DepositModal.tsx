@@ -29,6 +29,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
     const t = translations[language].deposit;
     const { toast } = useToast();
     const navigate = useNavigate();
+
     // Persistent state keys
     const STORAGE_KEY_AMOUNT = "deposit_draft_amount";
     const STORAGE_KEY_METHOD = "deposit_draft_method_id";
@@ -44,14 +45,16 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
 
     // Save to localStorage whenever state changes
     React.useEffect(() => {
-        localStorage.setItem(STORAGE_KEY_AMOUNT, amount);
-    }, [amount]);
+        if (isOpen) {
+            localStorage.setItem(STORAGE_KEY_AMOUNT, amount);
+        }
+    }, [amount, isOpen]);
 
     React.useEffect(() => {
-        if (selectedMethod) {
+        if (isOpen && selectedMethod) {
             localStorage.setItem(STORAGE_KEY_METHOD, selectedMethod.id);
         }
-    }, [selectedMethod]);
+    }, [selectedMethod, isOpen]);
 
     React.useEffect(() => {
         if (isOpen) {
@@ -61,12 +64,10 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                 setMethods(activeMethods);
 
                 // Restore method from storage if not already selected
-                if (!selectedMethod) {
-                    const savedMethodId = localStorage.getItem(STORAGE_KEY_METHOD);
-                    if (savedMethodId) {
-                        const savedMethod = activeMethods.find((m: DepositMethod) => m.id === savedMethodId);
-                        if (savedMethod) setSelectedMethod(savedMethod);
-                    }
+                const savedMethodId = localStorage.getItem(STORAGE_KEY_METHOD);
+                if (savedMethodId && !selectedMethod) {
+                    const savedMethod = activeMethods.find((m: DepositMethod) => m.id === savedMethodId);
+                    if (savedMethod) setSelectedMethod(savedMethod);
                 }
             });
         }
@@ -126,11 +127,14 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
                 description: t.successDesc
             });
 
-            onOpenChange(false);
-            setAmount("");
-            setFile(null);
+            // Clear all local state
             localStorage.removeItem(STORAGE_KEY_AMOUNT);
             localStorage.removeItem(STORAGE_KEY_METHOD);
+            localStorage.removeItem("isDepositModalOpen");
+
+            setAmount("");
+            setFile(null);
+            onOpenChange(false);
             await refreshProfile();
         } catch (error: any) {
             toast({ title: "Deposit Failed", description: error.message, variant: "destructive" });
@@ -140,7 +144,14 @@ export const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onOpenChange
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            if (!open) {
+                localStorage.removeItem(STORAGE_KEY_AMOUNT);
+                localStorage.removeItem(STORAGE_KEY_METHOD);
+                localStorage.removeItem("isDepositModalOpen");
+            }
+            onOpenChange(open);
+        }}>
             <DialogContent className="glass max-w-md border-border/50">
                 <DialogHeader className={isRTL ? "text-right" : "text-left"}>
                     <DialogTitle className="font-display text-xl flex items-center gap-2">

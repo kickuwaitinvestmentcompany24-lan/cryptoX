@@ -45,9 +45,13 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { setIsMobileSidebarOpen } = useOutletContext<any>() || { setIsMobileSidebarOpen: () => { } };
   const queryClient = useQueryClient();
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(() => localStorage.getItem("isDepositModalOpen") === "true");
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    localStorage.setItem("isDepositModalOpen", isDepositModalOpen.toString());
+  }, [isDepositModalOpen]);
   const [isInvestConfirmOpen, setIsInvestConfirmOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
   const [investAmount, setInvestAmount] = useState("");
