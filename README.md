@@ -134,7 +134,4 @@ We welcome contributions! Please follow these standards:
 
 ---
 
-## 10. Links & Documentation
-- [Official Website](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID)
-- [Supabase Documentation](https://supabase.com/docs)
-- [shadcn/ui Components](https://ui.shadcn.com/docs/components/accordion)
+
