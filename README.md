@@ -1,73 +1,140 @@
-# Welcome to your Lovable project
+# CryptoX Trading Platform
 
-## Project info
+CryptoX is a premium, institutional-grade investment and trading platform designed for efficiency, security, and elegance. Built with a modern tech stack, it provides users with a seamless experience for managing assets, performing KYC, and tracking investments, while giving admins powerful tools to manage the entire ecosystem.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+---
 
-## How can I edit this code?
+## 1. Project Overview
+**Purpose**: To bridge the gap between complex blockchain technology and everyday investors through a user-friendly, high-performance interface.
+**Scope**: End-to-end investment management, including real-time notifications, dynamic currency conversions, and rigorous administrative oversight.
+**Key Goals**:
+- Deliver a "wow" factor with premium UI aesthetics.
+- Ensure robust security for user assets and identity data.
+- Provide admins with granular control via impersonation and maintenance tools.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## 2. Tech Stack
+- **Foundation**: [Vite](https://vitejs.dev/) + [React](https://reactjs.org/) + [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Data Fetching**: [TanStack Query (React Query)](https://tanstack.com/query/latest)
+- **Backend as a Service**: [Supabase](https://supabase.com/) (Auth, Database, Storage, RLS)
+- **Tables**: [TanStack Table](https://tanstack.com/table/latest)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 3. Architecture & Design
+CryptoX follows a **Client-Side Rendering (CSR)** architecture with a Thick Client pattern:
+- **State Management**: Distributed between React Context (`AuthContext`, `LanguageContext`) for global state and TanStack Query for server-state synchronization.
+- **Security**: Heavily reliant on Supabase **Row-Level Security (RLS)**. Business logic for access control is enforced at the database layer (see `supabase/migrations`).
+- **Design System**: A custom design system built on top of Tailwind tokens, featuring glassmorphism, smooth micro-animations, and a responsive "mobile-first" approach.
+- **Trade-offs**: Chose Supabase for rapid development and built-in security, accepting the vendor lock-in for the benefit of a unified Auth/DB experience.
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 4. Installation & Environment
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Requirements
+- **Node.js**: v18.0 or higher
+- **NPM**: v9.0 or higher
+- **Supabase Account**: For hosting the backend and storage.
 
-Follow these steps:
+### Setup Steps
+1. **Clone the Repo**:
+   ```sh
+   git clone <repository-url>
+   cd emerald-trade-hub
+   ```
+2. **Install Dependencies**:
+   ```sh
+   npm install
+   ```
+3. **Environment Variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+4. **Database Setup**:
+   Apply migrations found in `supabase/migrations/` to your Supabase project via the SQL Editor.
 
+---
+
+## 5. Quick-Start & Scripts
+
+To run the project locally with hot-reloading:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Common Scripts
+- `npm run build`: Generate a production-ready bundle in the `dist/` folder.
+- `npm run lint`: Run ESLint to check for code quality and style issues.
+- `npm run test`: Execute the test suite using Vitest.
+- `npm run preview`: Locally preview the production build.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 6. Project Structure
+```text
+/
+├── public/          # Static assets
+├── src/
+│   ├── components/  # Reusable UI components (shadcn + custom)
+│   ├── contexts/    # React Contexts (Auth, Language)
+│   ├── hooks/       # Custom React hooks (Realtime, Notifications)
+│   ├── integrations/# Supabase client initialization
+│   ├── lib/         # Utility functions and API helpers (storage.ts)
+│   ├── pages/       # Page components (Admin, Dashboard, KYC, etc.)
+│   ├── App.tsx      # Main application entry and routing
+│   └── main.tsx     # React DOM rendering
+├── supabase/
+│   └── migrations/  # SQL scripts for database schema and RLS
+└── package.json     # Project dependencies and scripts
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 7. Features & Workflows
 
-This project is built with:
+### Admin Impersonation
+Allows admins to view the dashboard exactly as a specific user would.
+- **Flow**: Admin Dashboard -> Users Table -> "Login As" -> Automated redirect to User Dashboard.
+- **Audit**: Every session is logged in the `impersonation_logs` table.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Dynamic Currency Management
+Admins can define platform-wide currencies and exchange rates.
+- **Propagation**: Changes in rates are reflected in user balances and pricing across the app.
 
-## How can I deploy this project?
+### Maintenance Mode
+A global kill-switch managed by admins.
+- **UX**: Redirects all non-admin traffic to a stylized maintenance page.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 8. Contribution Guidelines
+We welcome contributions! Please follow these standards:
+- **Code Style**: We use ESLint and Prettier. Run `npm run lint` before committing.
+- **Testing**: New features should include unit tests in the `src/test` directory.
+- **Branching**: Use descriptive branch names (e.g., `feature/maintenance-mode` or `fix/nav-context`).
+- **PRs**: Ensure your PR has a clear description of the changes and passes all CI checks.
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 9. Changelog
+### v1.1.0 (Current)
+- Added **Global Maintenance Mode**.
+- Integrated **Dynamic Currency Management**.
+- Implemented **Admin Impersonation** with audit logs.
+- Refined **Dashboard Navigation** (collapsible sidebar, curvy mobile nav).
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### v1.0.0
+- Initial release with Core Auth, Investment Plans, and KYC.
+
+---
+
+## 10. Links & Documentation
+- [Official Website](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID)
+- [Supabase Documentation](https://supabase.com/docs)
+- [shadcn/ui Components](https://ui.shadcn.com/docs/components/accordion)
