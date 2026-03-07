@@ -2,7 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Users, ShieldCheck, ArrowDownRight, ArrowUpRight,
-    MessageSquare, Box, Settings, LayoutDashboard
+    MessageSquare, Box, Settings, LayoutDashboard, Coins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,7 @@ const AdminMobileNav: React.FC<AdminMobileNavProps> = ({ activeTab, setActiveTab
         { id: "deposits", label: "Deposits", icon: ArrowDownRight },
         { id: "withdrawals", label: "Withdrawals", icon: ArrowUpRight },
         { id: "support", label: "Support", icon: MessageSquare },
+        { id: "currencies", label: "Currencies", icon: Coins },
     ];
 
     return (

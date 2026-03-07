@@ -20,6 +20,8 @@ import UserRoute from "./components/UserRoute";
 import UserLayout from "./components/UserLayout";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
+import ImpersonationBanner from "./components/ImpersonationBanner";
+import MaintenanceGuard from "./components/MaintenanceGuard";
 
 const queryClient = new QueryClient();
 
@@ -31,47 +33,50 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/how-it-works" element={<HowItWorks />} />
-              <Route path="/admin/signup" element={<AdminSignUp />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/login" element={<Login />} />
+            <MaintenanceGuard>
+              <ImpersonationBanner />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/admin/signup" element={<AdminSignUp />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/login" element={<Login />} />
 
-              <Route
-                element={
-                  <UserRoute>
-                    <UserLayout />
-                  </UserRoute>
-                }
-              >
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/plans" element={<InvestmentPlans />} />
-                <Route path="/kyc" element={<KYC />} />
-              </Route>
+                <Route
+                  element={
+                    <UserRoute>
+                      <UserLayout />
+                    </UserRoute>
+                  }
+                >
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/plans" element={<InvestmentPlans />} />
+                  <Route path="/kyc" element={<KYC />} />
+                </Route>
 
-              <Route
-                path="/admin"
-                element={
-                  <AdminRoute>
-                    <Admin />
-                  </AdminRoute>
-                }
-              />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <Admin />
+                    </AdminRoute>
+                  }
+                />
 
-              {/* Fallback for other /admin paths to ensure protection */}
-              <Route
-                path="/admin/*"
-                element={
-                  <AdminRoute>
-                    <Admin />
-                  </AdminRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <LanguageSwitcher />
+                {/* Fallback for other /admin paths to ensure protection */}
+                <Route
+                  path="/admin/*"
+                  element={
+                    <AdminRoute>
+                      <Admin />
+                    </AdminRoute>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <LanguageSwitcher />
+            </MaintenanceGuard>
           </BrowserRouter>
         </LanguageProvider>
       </AuthProvider>

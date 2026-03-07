@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
     Users, ShieldCheck, ArrowDownRight, ArrowUpRight,
     MessageSquare, Box, Settings, LogOut, ChevronLeft, ChevronRight,
-    Sliders, LayoutDashboard
+    Sliders, LayoutDashboard, Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: "withdrawals", label: "Withdrawals", icon: ArrowUpRight },
         { id: "support", label: "Support Inbox", icon: MessageSquare },
         { id: "plans", label: "Investment Plans", icon: Box },
+        { id: "currencies", label: "Currencies", icon: Coins },
         { id: "content", label: "Platform Content", icon: Settings },
         { id: "settings", label: "Platform Settings", icon: Sliders },
     ];

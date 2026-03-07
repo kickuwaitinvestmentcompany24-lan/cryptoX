@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { startImpersonationLog, endImpersonationLog } from "@/lib/storage";
 
 export interface Profile {
     id: string;
@@ -38,6 +39,9 @@ type AuthContextType = {
     loading: boolean;
     signOut: () => Promise<void>;
     refreshProfile: () => Promise<void>;
+    startImpersonation: (targetUser: Profile) => Promise<void>;
+    stopImpersonation: () => Promise<void>;
+    impersonatedUser: Profile | null;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -49,6 +53,9 @@ const AuthContext = createContext<AuthContextType>({
     loading: true,
     signOut: async () => { },
     refreshProfile: async () => { },
+    startImpersonation: async () => { },
+    stopImpersonation: async () => { },
+    impersonatedUser: null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -58,6 +65,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [roles, setRoles] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [impersonatedUser, setImpersonatedUser] = useState<Profile | null>(null);
+    const [impersonationLogId, setImpersonationLogId] = useState<string | null>(null);
     const fetchInProgress = useRef<string | null>(null);
     const initialized = useRef(false);
 
@@ -153,16 +162,54 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const isAdmin = useMemo(() => roles.includes("admin"), [roles]);
 
+    const startImpersonation = async (targetUser: Profile) => {
+        if (!isAdmin) return;
+        try {
+            const log = await startImpersonationLog(session?.user?.id || "", targetUser.user_id);
+            setImpersonatedUser(targetUser);
+            setImpersonationLogId(log.id);
+            sessionStorage.setItem("impersonated_user", JSON.stringify(targetUser));
+            sessionStorage.setItem("impersonation_log_id", log.id);
+        } catch (error) {
+            console.error("Failed to start impersonation:", error);
+        }
+    };
+
+    const stopImpersonation = async () => {
+        if (impersonationLogId) {
+            try {
+                await endImpersonationLog(impersonationLogId);
+            } catch (error) {
+                console.error("Failed to end impersonation log:", error);
+            }
+        }
+        setImpersonatedUser(null);
+        setImpersonationLogId(null);
+        sessionStorage.removeItem("impersonated_user");
+        sessionStorage.removeItem("impersonation_log_id");
+    };
+
+    // Rehydrate impersonation session
+    useEffect(() => {
+        const storedUser = sessionStorage.getItem("impersonated_user");
+        const storedLogId = sessionStorage.getItem("impersonation_log_id");
+        if (storedUser) setImpersonatedUser(JSON.parse(storedUser));
+        if (storedLogId) setImpersonationLogId(storedLogId);
+    }, []);
+
     const value = useMemo(() => ({
         session,
         user: session?.user ?? null,
-        profile,
+        profile: impersonatedUser || profile,
         roles,
-        isAdmin,
+        isAdmin: isAdmin && !impersonatedUser,
         loading,
         signOut,
-        refreshProfile
-    }), [session, profile, roles, isAdmin, loading, refreshProfile]);
+        refreshProfile,
+        startImpersonation,
+        stopImpersonation,
+        impersonatedUser
+    }), [session, profile, roles, isAdmin, loading, refreshProfile, impersonatedUser, impersonationLogId]);
 
     return (
         <AuthContext.Provider value={value}>

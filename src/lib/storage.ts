@@ -102,6 +102,24 @@ export type AboutUs = {
     content: string;
 };
 
+export type Currency = {
+    id: string;
+    name: string;
+    code: string;
+    symbol: string;
+    exchange_rate: number;
+    is_active: boolean;
+    created_at: string;
+};
+
+export type ImpersonationLog = {
+    id: string;
+    admin_id: string;
+    target_user_id: string;
+    started_at: string;
+    ended_at: string | null;
+};
+
 // Site-wide content (About Us) - could be moved to a 'settings' table later
 const DEFAULT_ABOUT_US: AboutUs = {
     title: "Empowering Your Financial Future",
@@ -262,6 +280,43 @@ export const sendComplaintMessage = async (complaintId: string, senderId: string
         .insert([{ complaint_id: complaintId, sender_id: senderId, message }]);
     if (error) throw error;
     return data;
+};
+
+// --- Admin Enhancements ---
+
+export const getCurrencies = async () => {
+    const { data, error } = await supabase.from('currencies').select('*').order('created_at', { ascending: true });
+    if (error) throw error;
+    return data as Currency[];
+};
+
+export const saveCurrency = async (currency: Partial<Currency>) => {
+    const { data, error } = await supabase.from('currencies').upsert(currency).select().single();
+    if (error) throw error;
+    return data;
+};
+
+export const deleteCurrency = async (id: string) => {
+    const { error } = await supabase.from('currencies').delete().eq('id', id);
+    if (error) throw error;
+};
+
+export const startImpersonationLog = async (adminId: string, targetUserId: string) => {
+    const { data, error } = await supabase
+        .from('impersonation_logs')
+        .insert({ admin_id: adminId, target_user_id: targetUserId })
+        .select()
+        .single();
+    if (error) throw error;
+    return data;
+};
+
+export const endImpersonationLog = async (logId: string) => {
+    const { error } = await supabase
+        .from('impersonation_logs')
+        .update({ ended_at: new Date().toISOString() })
+        .eq('id', logId);
+    if (error) throw error;
 };
 
 // User-side: gets sender_id from the live auth session to avoid FK mismatches

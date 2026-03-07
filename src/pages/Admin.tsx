@@ -12,7 +12,8 @@ import {
   Plus, Save, Trash2, ArrowUpRight, ArrowDownRight, Clock, Users, Settings, MessageSquare,
   Wallet, CreditCard, Key, FileText, Edit3, Image as ImageIcon,
   CheckCircle2, XCircle, AlertCircle, Eye, Search, DollarSign,
-  Sliders, Wrench, ListPlus, LayoutDashboard, TrendingUp, TrendingDown, Box, ShieldCheck
+  Sliders, Wrench, ListPlus, LayoutDashboard, TrendingUp, TrendingDown, Box, ShieldCheck,
+  Coins, Edit, UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -41,7 +42,11 @@ import {
   InvestmentPlan,
   PlatformSetting,
   AboutUs as AboutUsType,
-  DepositMethod
+  DepositMethod,
+  Currency,
+  getCurrencies,
+  saveCurrency,
+  deleteCurrency,
 } from "@/lib/storage";
 import {
   useReactTable,
@@ -58,6 +63,8 @@ import {
 } from "@/components/ui/dialog";
 import AdminLayout from "@/components/AdminLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
   const { toast } = useToast();
@@ -68,6 +75,8 @@ const Admin = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { startImpersonation } = useAuth();
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionUserId, setRejectionUserId] = useState<string | null>(null);
   const [isKycModalOpen, setIsKycModalOpen] = useState(false);
@@ -157,6 +166,33 @@ const Admin = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-platform-settings'] });
       toast({ title: "Settings Updated", description: "Platform configuration has been saved." });
     }
+  });
+
+  // --- Currency Management ---
+  const { data: currencies = [] } = useQuery({
+    queryKey: ['currencies'],
+    queryFn: getCurrencies,
+  });
+
+  const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+  const [editingCurrency, setEditingCurrency] = useState<Partial<Currency> | null>(null);
+
+  const saveCurrencyMutation = useMutation({
+    mutationFn: (currency: Partial<Currency>) => saveCurrency(currency),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currencies'] });
+      setIsCurrencyModalOpen(false);
+      setEditingCurrency(null);
+      toast({ title: "Currency Saved", description: "The currency has been updated successfully." });
+    },
+  });
+
+  const deleteCurrencyMutation = useMutation({
+    mutationFn: (id: string) => deleteCurrency(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currencies'] });
+      toast({ title: "Currency Deleted", description: "The currency has been removed." });
+    },
   });
 
   const sendMessageMutation = useMutation({
@@ -297,6 +333,18 @@ const Admin = () => {
             })}
           >
             <AlertCircle className="w-3 h-3" /> {row.original.is_suspended ? "Unsuspend" : "Suspend"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-xs h-7 gap-1 text-primary hover:bg-primary/10"
+            onClick={() => {
+              startImpersonation(row.original as any);
+              toast({ title: "Impersonation Started", description: `You are now logged in as ${row.original.display_name}` });
+              navigate("/dashboard");
+            }}
+          >
+            <UserCheck className="w-3 h-3" /> Login As
           </Button>
         </div>
       ),
@@ -1409,6 +1457,109 @@ const Admin = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
+
+              <TabsContent value="currencies">
+                <Card className="glass">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="font-display text-lg">Platform Currencies</CardTitle>
+                      <CardDescription>Manage the currencies and exchange rates used across the application.</CardDescription>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setEditingCurrency({ name: "", code: "", symbol: "", exchange_rate: 1.0, is_active: true });
+                        setIsCurrencyModalOpen(true);
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      <Plus className="w-4 h-4" /> Add Currency
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4">
+                      {currencies.map((currency) => (
+                        <div key={currency.id} className="p-4 rounded-xl border border-border/30 bg-muted/10 flex items-center justify-between group transition-all hover:border-primary/20">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
+                              {currency.symbol}
+                            </div>
+                            <div>
+                              <div className="font-bold">{currency.name} ({currency.code})</div>
+                              <div className="text-xs text-muted-foreground">Rate: 1 USD = {currency.exchange_rate} {currency.code}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => {
+                                setEditingCurrency(currency);
+                                setIsCurrencyModalOpen(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete ${currency.name}?`)) {
+                                  deleteCurrencyMutation.mutate(currency.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="settings">
+                <div className="grid gap-6">
+                  <Card className="glass border-primary/20 bg-primary/5">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="font-display text-lg flex items-center gap-2">
+                            <Settings className="w-5 h-5 text-primary animate-spin-slow" />
+                            Global Maintenance Mode
+                          </CardTitle>
+                          <CardDescription>When active, the site is inaccessible to regular users.</CardDescription>
+                        </div>
+                        {(() => {
+                          const s = (settings as any[])?.find(s => s.key === "maintenance_mode");
+                          const mMode = s?.value === true;
+                          return (
+                            <Button
+                              variant={mMode ? "destructive" : "default"}
+                              size="sm"
+                              className="gap-2 px-6 shadow-lg shadow-primary/20"
+                              onClick={() => updateSettingsMutation.mutate({
+                                key: "maintenance_mode",
+                                value: !mMode
+                              })}
+                            >
+                              {mMode ? (
+                                <><XCircle className="w-4 h-4" /> Disable Maintenance</>
+                              ) : (
+                                <><ShieldCheck className="w-4 h-4" /> Enable Maintenance</>
+                              )}
+                            </Button>
+                          );
+                        })()}
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </div>
+              </TabsContent>
             </motion.div>
           </AnimatePresence>
         </Tabs >
@@ -1577,10 +1728,11 @@ const Admin = () => {
                     <SelectValue placeholder="Select currency" />
                   </SelectTrigger>
                   <SelectContent className="glass border-border/50">
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                    <SelectItem value="NGN">NGN (₦)</SelectItem>
+                    {currencies.map((c) => (
+                      <SelectItem key={c.id} value={c.code}>
+                        {c.code} ({c.symbol})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1958,6 +2110,79 @@ const Admin = () => {
               }}
             >
               <XCircle className="w-4 h-4 mr-1" /> Confirm Decline
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Currency Modal */}
+      <Dialog open={isCurrencyModalOpen} onOpenChange={setIsCurrencyModalOpen}>
+        <DialogContent className="glass border-border/50 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg flex items-center gap-2">
+              <Coins className="w-5 h-5 text-primary" />
+              {editingCurrency?.id ? "Edit Currency" : "Add New Currency"}
+            </DialogTitle>
+            <DialogDescription>
+              Configure the currency details and its exchange rate relative to USD.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Currency Name</Label>
+                <Input
+                  value={editingCurrency?.name || ""}
+                  onChange={(e) => setEditingCurrency({ ...editingCurrency, name: e.target.value })}
+                  placeholder="e.g. US Dollar"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Code (ISO)</Label>
+                <Input
+                  value={editingCurrency?.code || ""}
+                  onChange={(e) => setEditingCurrency({ ...editingCurrency, code: e.target.value.toUpperCase() })}
+                  placeholder="e.g. USD"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Symbol</Label>
+                <Input
+                  value={editingCurrency?.symbol || ""}
+                  onChange={(e) => setEditingCurrency({ ...editingCurrency, symbol: e.target.value })}
+                  placeholder="e.g. $"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Exchange Rate (to USD)</Label>
+                <Input
+                  type="number"
+                  step="0.000001"
+                  value={editingCurrency?.exchange_rate || 0}
+                  onChange={(e) => setEditingCurrency({ ...editingCurrency, exchange_rate: parseFloat(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="currency-active"
+                checked={editingCurrency?.is_active}
+                onChange={(e) => setEditingCurrency({ ...editingCurrency, is_active: e.target.checked })}
+                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <Label htmlFor="currency-active">Active and selectable by users</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCurrencyModalOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => saveCurrencyMutation.mutate(editingCurrency!)}
+              disabled={!editingCurrency?.name || !editingCurrency?.code || saveCurrencyMutation.isPending}
+            >
+              {editingCurrency?.id ? "Save Changes" : "Create Currency"}
             </Button>
           </DialogFooter>
         </DialogContent>
